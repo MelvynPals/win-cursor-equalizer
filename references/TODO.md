@@ -1,63 +1,44 @@
----
+﻿# CursorEqualizer TODO
 
-### Starter Templates for `references/DOCUMENTATION.md` and `references/TODO.md`
+Current phase: Phase 1 sizing investigation. User reports the equal-32px diagnostic looks about the same at 125%/150%, but the original difference is too subtle to establish success. User requested a checkpoint commit before a stronger 200% comparison. Phase 2 remains on hold.
 
-To make sure Claude has the exact context files it expects on Session 1[cite: 1], drop these two files into a `references/` folder in your project root:
+## Phase 1: Win32 console prototype
+- [x] Create .NET 8 project and centralized native declarations.
+- [x] Initialize Per Monitor V2 awareness as the first startup call.
+- [x] Enumerate monitor handles, resolutions, effective DPI, and primary monitor.
+- [x] Read and validate 13 registry cursor roles and expanded paths.
+- [x] Poll at 15 ms; apply fresh cursor handles only on monitor transitions.
+- [x] Restore on normal exit, Ctrl+C, ProcessExit, SessionEnding, ApplicationExit, and exceptions.
+- [x] Build with zero warnings/errors and run native API smoke checks.
+- [ ] User verifies sizes, animation, cursor roles, and restoration on physical monitors.
+- [ ] Compare app off/on with the secondary monitor set to 200% before launching the app.
+- [ ] Commit verified Phase 1 locally; never push.
 
-#### 1. `references/DOCUMENTATION.md`
-```markdown
-# CursorEqualizer — Documentation
+## Phase 2 (await Phase 1 confirmation)
+- [ ] SettingsManager: JSON at %AppData%\CursorEqualizer\settings.json.
+- [ ] Auto formula with physical diagonals; manual 16-128 px overrides.
+- [ ] DisplaySettingsChanged refreshes monitors.
+- [ ] User verifies persistence and display changes.
 
-## Overview
-A lightweight C# (.NET 8) Windows System Tray utility that equalizes the visual size of custom mouse cursors (`.cur` / `.ani`) across multiple monitors with different DPI scaling (e.g., 125% vs 150%) and physical dimensions (e.g., 24.5" 1440p vs 15.6" 1440p).
+## Phase 3 (await Phase 2 confirmation)
+- [ ] WinExe, tray menu, pause/resume, reload, and exit.
+- [ ] Dark calibration UI with diagonal inputs and live sliders.
+- [ ] User verifies UI.
 
-## Tech Stack
-- **Framework:** .NET 8.0 (`net8.0-windows`, WinForms for Tray & Calibration UI)
-- **System APIs:** Win32 `user32.dll` and `shcore.dll` via P/Invoke
-- **Config Storage:** `%AppData%\CursorEqualizer\settings.json`
+## Phase 4 (await Phase 3 confirmation)
+- [ ] Registry Run startup with --minimized.
+- [ ] Elevated Task Scheduler startup option.
+- [ ] Publish and verify single-file win-x64 executable.
 
-## Directory Layout
-```text
-/
-├── CLAUDE.md
-├── references/
-│   ├── DOCUMENTATION.md
-│   └── TODO.md
-└── src/ (or root)
-    ├── CursorEqualizer.csproj
-    ├── Program.cs          # DPI Awareness V2 init, Mutex, crash/exit hooks
-    ├── NativeMethods.cs    # P/Invoke declarations & Win32 constants
-    ├── CursorManager.cs    # Registry cursor reader, monitor polling, SetSystemCursor engine
-    ├── SettingsManager.cs  # JSON config, Registry Run key, Task Scheduler admin task
-    └── MainForm.cs         # System Tray icon & per-monitor calibration UI
+## Open checks
+- Initial inverse-DPI compensation made the second monitor cursor smaller than the primary and its original appearance. Equal 32 px requests look approximately matched at 125%/150%; the user reports a mismatch at 200%. A controlled comparison with 200% configured before startup is pending.
+- Physical size compensation is Phase 2. Equal pixel requests do not guarantee equal physical sizes on screens with different pixel density.
+- Check animated .ani behavior and actual requested pixel sizing on the installed theme.
+- Force kill cannot run cleanup; use the documented --restore command for recovery.
 
-#### 2. `references/TODO.md`
-```markdown
-# CursorEqualizer — TODO & Phase Tracker
-
-## Phase 1: Core Win32 Engine & CLI Proof-of-Concept
-- [ ] Initialize `CursorEqualizer.csproj` (.NET 8) and `NativeMethods.cs`
-- [ ] Set `DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2` on startup
-- [ ] Enumerate monitors and print handles, resolutions, and effective DPIs
-- [ ] Read active custom cursor paths from `HKCU\Control Panel\Cursors`
-- [ ] Implement 15ms monitor transition polling (`GetCursorPos` + `MonitorFromPoint`)
-- [ ] Apply counter-scaled cursors via `LoadImageW` + `SetSystemCursor` on monitor change
-- [ ] Hook `Ctrl+C` and `ProcessExit` to restore cursors via `SPI_SETCURSORS` (`0x0057`)
-- [ ] **Milestone Check:** Run and verify cursor scaling across monitors in terminal
-
-## Phase 2: Calibration Math, JSON Persistence & Display Events
-- [ ] Create `SettingsManager.cs` (`%AppData%\CursorEqualizer\settings.json`)
-- [ ] Implement Auto Formula Mode vs. Manual Pixel Override (`16px`–`128px`)
-- [ ] Hook `SystemEvents.DisplaySettingsChanged` to refresh monitor topology dynamically
-- [ ] **Milestone Check:** Verify config saving/loading and display change handling
-
-## Phase 3: System Tray App & Dark-Mode Calibration UI
-- [ ] Switch project to `WinExe` with single-instance `Mutex`
-- [ ] Implement `NotifyIcon` tray menu (Open Settings, Pause/Resume, Reload Cursors, Exit)
-- [ ] Build dark-mode calibration window with per-monitor diagonal inputs and live pixel sliders
-- [ ] **Milestone Check:** Verify live slider preview and tray behavior
-
-## Phase 4: Auto-Startup Integration & Single-File Packaging
-- [ ] Add `HKCU\...\Run` Registry startup toggle (`--minimized`)
-- [ ] Add Task Scheduler elevated startup option (for scaling over Admin windows)
-- [ ] Publish single-file executable (`dotnet publish -c Release -r win-x64 --self-contained false /p:PublishSingleFile=true`)
+## Phase 1 verification (2026-10-22)
+- `dotnet build`: zero warnings and errors.
+- `dotnet run --no-build -- --smoke-test`: exit 0; all 13 Glitch .cur/.ani files loaded; registry scheme restored after two seconds.
+- Interactive `dotnet run --no-build`: transitions observed between DISPLAY1 (2560x1440, 120 DPI, 32 px) and DISPLAY2 (2560x1440, 144 DPI, 27 px). Ctrl+C logged successful restoration (terminal host reported exit 1 for the interrupted command).
+- Session-ending and crash hooks are implemented; logoff and forced exception scenarios have not been exercised.
+- Equal-32px diagnostic revision: after the user stopped the original instance, standard `dotnet build` passed with zero warnings/errors. `dotnet run --no-build -- --smoke-test` exited 0, reported 32 px targets on both monitors, applied all 13 roles on DISPLAY1, and restored the registry scheme. Awaiting the user's cross-monitor visual comparison.
