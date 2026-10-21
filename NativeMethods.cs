@@ -23,6 +23,22 @@ internal static class NativeMethods
     [StructLayout(LayoutKind.Sequential)]
     internal struct RECT { internal int Left, Top, Right, Bottom; }
 
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct ICONINFO
+    {
+        [MarshalAs(UnmanagedType.Bool)] internal bool IsIcon;
+        internal uint HotspotX, HotspotY;
+        internal IntPtr Mask, Color;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct BITMAP
+    {
+        internal int Type, Width, Height, WidthBytes;
+        internal ushort Planes, BitsPerPixel;
+        internal IntPtr Bits;
+    }
+
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     internal struct MONITORINFOEX
     {
@@ -65,6 +81,17 @@ internal static class NativeMethods
     [DllImport("user32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     internal static extern bool SetSystemCursor(IntPtr cursor, uint id);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    internal static extern bool GetIconInfo(IntPtr cursor, out ICONINFO info);
+
+    [DllImport("gdi32.dll", EntryPoint = "GetObjectW", ExactSpelling = true)]
+    internal static extern int GetObjectW(IntPtr bitmap, int size, out BITMAP info);
+
+    [DllImport("gdi32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    internal static extern bool DeleteObject(IntPtr handle);
 
     [DllImport("user32.dll", ExactSpelling = true, SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]

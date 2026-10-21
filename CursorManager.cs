@@ -7,12 +7,17 @@ namespace CursorEqualizer;
 internal sealed class CursorManager
 {
     private const int BasePixels = 32;
+    private readonly bool inverseDpi;
+    private int? secondaryTestPixels;
+    private uint primaryDpi;
     private readonly object gate = new();
     private readonly Dictionary<IntPtr, MonitorDetails> monitors = new();
     private readonly List<CursorSource> sources = new();
     private IntPtr lastMonitor;
     private bool stopping;
     private bool restored;
+
+    internal CursorManager(bool inverseDpi = false) => this.inverseDpi = inverseDpi;
 
     private sealed record MonitorDetails(IntPtr Handle, string Name, NativeMethods.RECT Bounds,
         uint DpiX, uint DpiY, bool Primary);
@@ -29,8 +34,11 @@ internal sealed class CursorManager
         ("AppStarting", NativeMethods.OCR_APPSTARTING)
     ];
 
-    internal void Initialize()
+    internal void Initialize(int? secondaryTestPixels = null)
     {
+        if (secondaryTestPixels is < 16 or > 128)
+            throw new ArgumentOutOfRangeException(nameof(secondaryTestPixels), "Diagnostic size must be 16-128 px.");
+        this.secondaryTestPixels = secondaryTestPixels;
         Exception? callbackError = null;
         bool Enumerate(IntPtr handle, IntPtr hdc, ref NativeMethods.RECT bounds, IntPtr data)
         {
@@ -61,13 +69,14 @@ internal sealed class CursorManager
         if (callbackError is not null) throw callbackError;
         if (!enumerated) throw new Win32Exception(Marshal.GetLastWin32Error(), "EnumDisplayMonitors failed.");
         if (monitors.Count == 0) throw new InvalidOperationException("No connected monitors found.");
+        primaryDpi = monitors.Values.Single(m => m.Primary).DpiX;
         Console.WriteLine("Connected monitors:");
         foreach (var m in monitors.Values)
         {
             Console.WriteLine($"  {m.Name} handle=0x{m.Handle.ToInt64():X} " +
                 $"{m.Bounds.Right - m.Bounds.Left}x{m.Bounds.Bottom - m.Bounds.Top} " +
                 $"at ({m.Bounds.Left},{m.Bounds.Top}) DPI={m.DpiX}x{m.DpiY} " +
-                $"scale={m.DpiX / 96.0:P0}{(m.Primary ? " [primary]" : "")} target={BasePixels}px");
+                $"scale={m.DpiX / 96.0:P0}{(m.Primary ? " [primary]" : "")} target={TargetPixels(m)}px");
         }
 
         using var key = Registry.CurrentUser.OpenSubKey(@"Control Panel\Cursors")
@@ -96,6 +105,35 @@ internal sealed class CursorManager
             throw new InvalidOperationException("No usable custom .cur/.ani files found. Select a custom cursor scheme first.");
     }
 
+    private int TargetPixels(MonitorDetails monitor)
+    {
+        if (!monitor.Primary && secondaryTestPixels is int pixels) return pixels;
+        return inverseDpi
+            ? Math.Clamp((int)Math.Round(BasePixels * (double)primaryDpi / monitor.DpiX), 16, 128)
+            : BasePixels;
+    }
+
+    // GetIconInfo allocates bitmap copies; release them independently of the HCURSOR.
+    private static string DescribeCursor(IntPtr cursor)
+    {
+        if (!NativeMethods.GetIconInfo(cursor, out var info))
+            return $"unavailable (GetIconInfo error {Marshal.GetLastWin32Error()})";
+        try
+        {
+            IntPtr bitmap = info.Color != IntPtr.Zero ? info.Color : info.Mask;
+            if (bitmap == IntPtr.Zero || NativeMethods.GetObjectW(bitmap,
+                Marshal.SizeOf<NativeMethods.BITMAP>(), out var details) == 0)
+                return "unavailable (no bitmap dimensions)";
+            int height = info.Color != IntPtr.Zero ? details.Height : details.Height / 2;
+            return $"{details.Width}x{height}px, hotspot=({info.HotspotX},{info.HotspotY})";
+        }
+        finally
+        {
+            if (info.Mask != IntPtr.Zero) NativeMethods.DeleteObject(info.Mask);
+            if (info.Color != IntPtr.Zero) NativeMethods.DeleteObject(info.Color);
+        }
+    }
+
     internal void Poll()
     {
         lock (gate)
@@ -107,9 +145,7 @@ internal sealed class CursorManager
             if (handle == IntPtr.Zero || handle == lastMonitor) return;
             if (!monitors.TryGetValue(handle, out var monitor))
                 throw new InvalidOperationException("Monitor topology changed. Restart this Phase 1 prototype.");
-            // Controlled Phase 1 baseline: establish actual Windows rendering before
-            // introducing DPI/PPI compensation. The inverse-DPI trial shrank DISPLAY2.
-            int pixels = BasePixels;
+            int pixels = TargetPixels(monitor);
             Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Enter {monitor.Name}: requesting {pixels}px for {sources.Count} roles.");
             foreach (var source in sources)
             {
@@ -117,9 +153,11 @@ internal sealed class CursorManager
                     NativeMethods.IMAGE_CURSOR, pixels, pixels, NativeMethods.LR_LOADFROMFILE);
                 if (cursor == IntPtr.Zero)
                     throw new Win32Exception(Marshal.GetLastWin32Error(), $"LoadImageW failed for {source.Role}: {source.Path}");
+                string loaded = DescribeCursor(cursor);
                 // Ownership transfers to Windows; never reuse or destroy this handle after the call.
                 if (!NativeMethods.SetSystemCursor(cursor, source.Id))
                     throw new Win32Exception(Marshal.GetLastWin32Error(), $"SetSystemCursor failed for {source.Role}.");
+                Console.WriteLine($"  {source.Role}: requested={pixels}px loaded={loaded}; SetSystemCursor succeeded");
             }
             lastMonitor = handle;
         }
