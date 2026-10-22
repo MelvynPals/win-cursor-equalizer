@@ -12,6 +12,19 @@ Phase 3 is implemented as a .NET 8 (`net8.0-windows`, WinForms, WinExe) tray uti
 - `SettingsManager.cs`: validated JSON loading and atomic save in `%AppData%\CursorEqualizer\settings.json`.
 - `tests/Phase2Checks/`: dependency-free focused sizing and settings checks.
 
+## Design experiment setup
+The `new-design` branch starts from the verified Phase 3 implementation (`583896e`). The existing, visually verified Phase 3 window capture is preserved as [design-before.png](design-before.png), 918 x 909 pixels at 125% window DPI. It shows D1 at 125%, D2 at 200%, and the established 32/23 px calibration. This is the baseline for a later design comparison; application source was not changed during setup.
+
+Three project-local skills were installed into `.agents/skills` using the Codex skill-installer helper:
+
+| Installed name | Upstream source |
+| --- | --- |
+| `frontend-design` | [anthropics/skills: skills/frontend-design](https://github.com/anthropics/skills/tree/main/skills/frontend-design) |
+| `emil-design-eng` | [emilkowalski/skills: skills/emil-design-eng](https://github.com/emilkowalski/skills/tree/main/skills/emil-design-eng) |
+| `design-taste-frontend` | [Leonxlnx/taste-skill: skills/taste-skill](https://github.com/Leonxlnx/taste-skill/tree/main/skills/taste-skill) |
+
+The supplied `emilkowalski/skill` URL redirects to the plural `skills` repository; its main design-engineering skill was selected. Taste's declared skill name is `design-taste-frontend`. Installed skill files and bundled resources are retained in the repository for this branch. They become available on the next turn. Their web-oriented design principles can be evaluated for WinForms while preserving the existing architecture, calibrated sizing, and restoration behavior. Phase 4 remains deferred during this design experiment.
+
 ## Settings and identity
 JSON version 1 contains `BasePixels` (16-128, default 32) and `Monitors`, a case-insensitive dictionary keyed by monitor device interface ID. Each entry has `Mode` (`Auto`, `Manual`, or `Calibrated`), nullable `DiagonalInches` (>0 to 200), `ManualPixels` (16-128), `CalibrationPixels` (16-128), and nullable positive `CalibrationDpi`. Calibrated mode requires a reference DPI. Existing Auto/Manual settings without the new fields continue to load.
 

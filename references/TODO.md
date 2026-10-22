@@ -1,6 +1,15 @@
 ﻿# CursorEqualizer TODO
 
-Current phase: Phase 3 verified by the user on 2026-10-23 and committed locally at their request. Clean build and all 29 existing checks pass. User confirmed all four requested checks: live sliders, moving the window between displays, close/reopen from tray, and tray reload/pause/resume/exit restoration. Phase 4 is next; not started. Phase 2 is committed as 33865de.
+Current work: design experiment setup on `new-design`, requested after Phase 3 was verified and committed as 583896e. Branch, baseline screenshot, and three project-local design skills are prepared. No application source changes in this setup. Phase 4 has not started. Phase 2 is committed as 33865de.
+
+## Design experiment
+- [x] Create and switch to `new-design` from verified Phase 3.
+- [x] Preserve the verified Phase 3 window screenshot at `references/design-before.png` for comparison.
+- [x] Install Anthropic `frontend-design` into `.agents/skills`.
+- [x] Install Emil Kowalski's main `emil-design-eng` skill into `.agents/skills`.
+- [x] Install Taste's `design-taste-frontend` skill and bundled resources into `.agents/skills`.
+- [ ] Evaluate and apply relevant design principles to the WinForms UI, when requested; skills become available on the next turn.
+- [ ] Capture the resulting UI and compare with the baseline; build/run and wait for physical-display confirmation for design changes.
 
 ## Next phase
 - Phase 4: standard Registry Run startup with --minimized, elevated Task Scheduler startup, and single-file win-x64 packaging.
