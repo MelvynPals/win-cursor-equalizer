@@ -5,5 +5,9 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <DefaultItemExcludes>$(DefaultItemExcludes);.local/**</DefaultItemExcludes>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="tests/**/*.cs" />
+  </ItemGroup>
 </Project>

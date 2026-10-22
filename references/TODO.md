@@ -1,13 +1,12 @@
 ﻿# CursorEqualizer TODO
 
-Current phase: Phase 1 sizing investigation, stopped for the day at the user's request. Display 2 is back at 150%. Fixed 32 px was too large at 200%; inverse-DPI 20 px was too small. Later visual trials found 26 px too large and 23 px approximately matched, but the timing of the return to 150% is unconfirmed. Do not treat 23 px as a verified 200% calibration. Phase 2 remains on hold.
+Current phase: Phase 2 milestone verified and ready for Phase 3. User confirmed Calibrated mode looks about the same at both 150% and 200% on 2026-10-23. Clean build, 29 checks, persistence, and native smoke/restoration passed. Exact physical equality is not measured. Phase 3 has not started.
 
-## Resume next session
-- Keep the primary at 125%. Set Display 2 to 200% before starting the app and keep that scale fixed for the full comparison.
-- Exit/restart the Phase 1 app after every Windows scale change; its DPI snapshot is taken at startup.
-- Confirm Display 2 reports 192 DPI / 200%, then repeat `dotnet run -- --test-secondary-px 23` and compare app off/on on the desktop.
-- Log the scale with each size result. Verify 150% in a separate test afterwards; don't assume the same target works at both scales.
-- The user requested a checkpoint commit of current diagnostics before returning tomorrow; this does not mark Phase 1 fully verified.
+## Remaining regression checks
+- Saved Calibrated references: D1=32 px at 120 DPI / D2=23 px at 192 DPI. D2 targets 31 px at 150%, 23 px at 200%.
+- User confirmed comparable appearance at both scales. Logs were not supplied to distinguish Windows-event delivery from fallback DPI detection.
+- Check unplug/reconnect, primary-display changes, or resolution changes; confirm monitor settings persist and no polling-tick cursor replacement occurs. These physical regression cases remain untested.
+- D1 diagonal=24.5 inches is user-supplied. D2=16 inches is provisional; confirm exact laptop diagonal later.
 
 ## Phase 1: Win32 console prototype
 - [x] Create .NET 8 project and centralized native declarations.
@@ -19,15 +18,24 @@ Current phase: Phase 1 sizing investigation, stopped for the day at the user's r
 - [x] Build with zero warnings/errors and run native API smoke checks.
 - [ ] User verifies sizes, animation, cursor roles, and restoration on physical monitors.
 - [ ] Compare app off/on with the secondary monitor set to 200% before launching the app.
-- [ ] Commit verified Phase 1 locally; never push.
+- [x] Commit Phase 1 diagnostic checkpoints locally (239a8ab, d663c83); never push. Exact physical equality remained unresolved; user authorized proceeding to Phase 2.
 
-## Phase 2 (await Phase 1 confirmation)
-- [ ] SettingsManager: JSON at %AppData%\CursorEqualizer\settings.json.
-- [ ] Auto formula with physical diagonals; manual 16-128 px overrides.
-- [ ] DisplaySettingsChanged refreshes monitors.
-- [ ] User verifies persistence and display changes.
+## Phase 2 (authorized 2026-10-23)
+- [x] SettingsManager: validated JSON at %AppData%\CursorEqualizer\settings.json, atomic save, malformed-file preservation.
+- [x] Auto formula with physical diagonals and clamping; manual 16-128 px overrides.
+- [x] Monitor-interface identity persistence, retaining disconnected monitor entries.
+- [x] DisplaySettingsChanged enqueues debounced monitor/DPI refresh; unknown handles retry and R triggers the same path.
+- [x] Thin Program.cs; ConsoleApp.cs owns console configuration and lifecycle.
+- [x] Clean build, 20 focused checks, native smoke/restoration, cross-process reload, and R refresh checks.
+- [x] Add Calibrated mode preserving a saved pixel/DPI reference while fixed Manual mode remains unchanged.
+- [x] Once-per-second DPI-change detection queues refresh as fallback to Windows display events.
+- [x] Expand to 29 focused checks; verify calibrated reference persistence and saved native smoke/restoration.
+- [x] User confirms Calibrated mode looks approximately the same at 150% and 200%.
+- [x] Cross-process persistence and live scaling change behavior verified (event versus fallback source not identified).
+- [ ] Regression: verify physical hotplug/resolution/primary-monitor changes and distinguish Windows events from fallback detection.
+- [x] Commit Phase 2 milestone locally after user's visual confirmation; never push.
 
-## Phase 3 (await Phase 2 confirmation)
+## Phase 3 (next phase; not started)
 - [ ] WinExe, tray menu, pause/resume, reload, and exit.
 - [ ] Dark calibration UI with diagonal inputs and live sliders.
 - [ ] User verifies UI.
@@ -38,10 +46,19 @@ Current phase: Phase 1 sizing investigation, stopped for the day at the user's r
 - [ ] Publish and verify single-file win-x64 executable.
 
 ## Open checks
-- Initial inverse-DPI compensation made the second monitor cursor smaller than the primary and its original appearance at 150%. The 200% test found 32 px too large and 20 px too small. Later 26 px / 23 px visual results need a repeat at a confirmed, fixed scale because the user has returned to 150%. User's Display 2 logs confirm all 13 roles loaded at 20x20 and SetSystemCursor succeeded. Exact physical equality is unmeasured; no general sizing formula is verified yet.
+- Requested Auto formula computes about 13.06 px (clamped to 16) for 24.5-inch D1 at 125% and provisional 16-inch D2 at 200%. This contradicts prior visual evidence that 20 px was already too small. Auto math is implemented as specified; the current test instead uses empirical Calibrated references. Exact physical equality is still unmeasured.
+- Manual overrides are fixed per monitor, not per scaling percentage; they do not promise equal appearance at both 150% and 200%.
+- Phase 1 trials found inverse-DPI compensation too small and fixed sizing inconsistent across DPI settings. Phase 2 Calibrated mode now has user confirmation of approximate visual consistency at 150% and 200%; this does not validate the separate physical-diagonal Auto formula.
 - Physical size compensation is Phase 2. Equal pixel requests do not guarantee equal physical sizes on screens with different pixel density.
 - Check animated .ani behavior and actual requested pixel sizing on the installed theme.
 - Force kill cannot run cleanup; use the documented --restore command for recovery.
+
+## Phase 2 verification (2026-10-23)
+- `dotnet build`: zero warnings/errors.
+- `dotnet run --project tests/Phase2Checks/Phase2Checks.csproj`: 29 checks passed, covering formula/clamps, fixed Manual behavior, Calibrated 23 -> 31 -> 23 behavior, settings roundtrip, case-insensitive identity, and invalid-file preservation.
+- AppData settings reloaded across native application runs; Auto/Manual/Calibrated configuration and cursor restoration passed.
+- R refresh path re-read monitor state and reapplied once, then normal exit restored the registry scheme.
+- User's final Calibrated visual result: both scales look about the same. Physical hotplug/resolution regression scenarios remain pending.
 
 ## Phase 1 verification (2026-10-22)
 - `dotnet build`: zero warnings and errors.

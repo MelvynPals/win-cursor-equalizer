@@ -11,6 +11,8 @@ internal static class NativeMethods
     internal const uint IMAGE_CURSOR = 2;
     internal const uint LR_LOADFROMFILE = 0x0010;
     internal const uint SPI_SETCURSORS = 0x0057;
+    internal const uint EDD_GET_DEVICE_INTERFACE_NAME = 1;
+    internal const uint DISPLAY_DEVICE_ACTIVE = 1;
     internal const uint OCR_NORMAL = 32512, OCR_IBEAM = 32513, OCR_WAIT = 32514,
         OCR_CROSS = 32515, OCR_UP = 32516, OCR_SIZENWSE = 32642,
         OCR_SIZENESW = 32643, OCR_SIZEWE = 32644, OCR_SIZENS = 32645,
@@ -49,6 +51,21 @@ internal static class NativeMethods
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
         internal string DeviceName;
     }
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    internal struct DISPLAY_DEVICE
+    {
+        internal uint Size;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)] internal string DeviceName;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)] internal string DeviceString;
+        internal uint StateFlags;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)] internal string DeviceId;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)] internal string DeviceKey;
+    }
+
+    [DllImport("user32.dll", ExactSpelling = true, CharSet = CharSet.Unicode)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    internal static extern bool EnumDisplayDevicesW(string device, uint index, ref DISPLAY_DEVICE info, uint flags);
 
     [return: MarshalAs(UnmanagedType.Bool)]
     internal delegate bool MonitorEnumProc(IntPtr monitor, IntPtr hdc, ref RECT bounds, IntPtr data);
