@@ -1,10 +1,12 @@
 ﻿# CursorEqualizer Documentation
 
 ## Current scope and files
-Phase 2 is implemented and its calibrated 150%/200% visual comparison was confirmed by the user on 2026-10-23. The app remains a .NET 8 (`net8.0-windows`, WinForms references) console host. Phase 3 UI and Phase 4 startup/publishing remain deferred.
+Phase 3 is implemented as a .NET 8 (`net8.0-windows`, WinForms, WinExe) tray utility and the user confirmed its four requested UI/tray checks on 2026-10-23. Phase 2 calibrated sizing passed the user's 150%/200% visual comparison. Phase 4 startup/publishing is next and has not started.
 
 - `Program.cs`: first-call Per Monitor V2 DPI awareness, session-local single-instance mutex, exit/crash/session hooks.
-- `ConsoleApp.cs`: console options, configuration commands, polling lifecycle, DisplaySettingsChanged subscription/unsubscription.
+- `TrayAppContext.cs`: WinForms message loop, 15 ms UI-thread poll timer, display-event subscription, GUI lifecycle and cleanup.
+- `MainForm.cs`: dark calibration window, per-monitor controls, tray icon/menu, autosave feedback. No P/Invoke calls or interop imports.
+- `ConsoleApp.cs`: explicit diagnostic/configuration options and console polling mode, retained for testing/recovery.
 - `NativeMethods.cs`: all user32.dll, shcore.dll, and gdi32.dll declarations, constants, and structures.
 - `CursorManager.cs`: monitor identities/DPI, registry cursor sources, sizing math, refresh requests, transition-only cursor replacement, restoration.
 - `SettingsManager.cs`: validated JSON loading and atomic save in `%AppData%\CursorEqualizer\settings.json`.
@@ -40,6 +42,8 @@ DisplaySettingsChanged handlers only enqueue a refresh. The polling thread debou
 
 A once-per-second GetDpiForMonitor probe detects DPI changes even when Windows does not deliver DisplaySettingsChanged. It only queues that same refresh when the detected DPI differs; it does not load or replace cursors on the probe/timer tick. Event delivery versus fallback detection should be distinguished in testing logs.
 
+GUI changes, resume, and registry reload explicitly invalidate the applied-monitor snapshot for one update on the next poll, enabling live preview without replacing cursors on normal unchanged ticks. Pause reloads the registry scheme while keeping display detection alive. Resume reapplies the current monitor's size. Any new SetSystemCursor call marks the scheme dirty so exit restores again even after an earlier pause/reload restoration. Reload first validates a fresh cursor-source list, then restores the registry scheme and reapplies custom roles when active; missing roles use the restored scheme.
+
 GetIconInfo + GetObjectW log loaded cursor bitmap dimensions and hotspots. DeleteObject releases the copied bitmaps. Bitmap canvas dimensions do not measure the final rendered cursor or physical visible arrow size.
 
 SPI_SETCURSORS restoration covers normal exit, Ctrl+C, ProcessExit, unhandled exceptions, ApplicationExit, and SessionEnding. Force kill/power loss cannot execute managed cleanup. `--restore` works without loading JSON settings as a recovery command.
@@ -48,6 +52,8 @@ SPI_SETCURSORS restoration covers normal exit, Ctrl+C, ProcessExit, unhandled ex
 ```powershell
 dotnet build
 dotnet run
+dotnet run -- --minimized
+dotnet run -- --ui-smoke-test
 dotnet run -- --list
 dotnet run -- --set-manual DISPLAY2 23 --list
 dotnet run -- --set-calibrated DISPLAY2 23 --list
@@ -59,7 +65,27 @@ dotnet run -- --restore
 dotnet run -- --help
 dotnet run --project tests/Phase2Checks/Phase2Checks.csproj
 ```
-Without --list, configuration commands save settings then run the engine. --smoke-test runs for two seconds and restores. Q, Escape, and Ctrl+C exit; R refreshes displays.
+`dotnet run` opens the tray app and Settings window. `--minimized` starts only the tray icon (no auto-start registration yet). `--ui-smoke-test` opens the real UI, runs for two seconds, and exits through normal restoration/cleanup. Explicit configuration/diagnostic options retain the console host: without --list they save settings then run the engine. --smoke-test tests that console engine for two seconds and restores. Q, Escape, Ctrl+C, and R apply to the console host.
+
+## Calibration UI and tray
+- Each card shows display name, resolution, Windows scaling, mode, diagonal inches, and a live 16-128 px slider. Cards refresh after display changes and use the window's current DPI for layout.
+- Calibrated mode remains the recommended test setup. Slider edits capture the selected display's current DPI with the new reference size. Fixed pixels corresponds to Manual; Automatic uses the original diagonal formula. Moving the slider in Automatic switches to Calibrated.
+- Diagonal 0 means unknown. Changes preview through CursorManager immediately and save after a 250 ms debounce. Settings flush when closing the window or exiting. Save failures appear in the status line.
+- For immediate visual preview, move Settings onto the display being calibrated, then adjust its slider. Otherwise the new size appears when the pointer next enters that display.
+- Closing Settings or clicking Hide to tray leaves the equalizer running. Double-click the tray icon, or right-click and select Open Settings, to reopen it. Windows may put the icon in the hidden-icons area.
+- Tray actions: Open Settings, Pause/Resume Equalizer, Reload Cursors from Registry, Exit & Restore Default Cursors. Pause is also available in Settings.
+- Exit stops timers, unsubscribes display events, flushes settings, restores registry cursors, closes the form, and disposes the tray icon. Startup failure and UI-thread error handlers also restore cursors.
+- Startup integration and single-file publishing remain Phase 4.
+
+## Phase 3 live test
+1. The Settings window is launched for review. Inspect both display cards and move the window between 125% and 200% displays to check readability, resizing, and scrolling.
+2. Move the window to each display, adjust its slider by a few pixels, and verify live cursor resizing. Leave the desired calibration saved; no explicit Save button is required.
+3. Toggle Pause/Resume from the window and tray. Pause should restore the registry scheme; resume should reapply the equalizer.
+4. Close Settings with X, confirm the app continues in the tray, then reopen it from the tray menu/double-click.
+5. Test Reload Cursors from Registry, then exit through Exit & Restore Default Cursors. Relaunch with `dotnet run` and confirm settings persist.
+6. Repeat the 150%/200% scale-change comparison with the UI open to confirm slider labels/DPI and calibrated size update correctly.
+
+Phase 3 verification: clean build; all 29 Phase 2 checks pass; two-second GUI smoke test exited 0 and restored the scheme; layout inspected at 125%; automated Pause/Resume passed; keyboard adjustment of D2's slider to 24 px persisted, then it was restored precisely to 23 px. The generic UI Automation Value pattern exposes slider percentage, so exact-pixel verification used the keyboard path. The user confirmed all four requested checks: live sliders, moving the window between displays, closing/reopening from the tray, and tray reload/pause/resume/exit restoration.
 
 ## Phase 2 live test
 1. Start at primary 125%, D2 200%, then run `dotnet run`. Confirm logged DPI 120/192 and saved Calibrated targets 32/23, with reference DPI 120/192.

@@ -1,6 +1,11 @@
 ﻿# CursorEqualizer TODO
 
-Current phase: Phase 2 milestone verified and ready for Phase 3. User confirmed Calibrated mode looks about the same at both 150% and 200% on 2026-10-23. Clean build, 29 checks, persistence, and native smoke/restoration passed. Exact physical equality is not measured. Phase 3 has not started.
+Current phase: Phase 3 verified by the user on 2026-10-23 and committed locally at their request. Clean build and all 29 existing checks pass. User confirmed all four requested checks: live sliders, moving the window between displays, close/reopen from tray, and tray reload/pause/resume/exit restoration. Phase 4 is next; not started. Phase 2 is committed as 33865de.
+
+## Next phase
+- Phase 4: standard Registry Run startup with --minimized, elevated Task Scheduler startup, and single-file win-x64 packaging.
+- Phase 3 UI checks were confirmed; Phase 4 implementation has not started.
+- Continue regression checks for restart persistence, smaller-window scrolling, and physical hotplug as relevant.
 
 ## Remaining regression checks
 - Saved Calibrated references: D1=32 px at 120 DPI / D2=23 px at 192 DPI. D2 targets 31 px at 150%, 23 px at 200%.
@@ -35,12 +40,20 @@ Current phase: Phase 2 milestone verified and ready for Phase 3. User confirmed 
 - [ ] Regression: verify physical hotplug/resolution/primary-monitor changes and distinguish Windows events from fallback detection.
 - [x] Commit Phase 2 milestone locally after user's visual confirmation; never push.
 
-## Phase 3 (next phase; not started)
-- [ ] WinExe, tray menu, pause/resume, reload, and exit.
-- [ ] Dark calibration UI with diagonal inputs and live sliders.
-- [ ] User verifies UI.
+## Phase 3 (authorized 2026-10-23)
+- [x] Convert to WinExe; default launch uses TrayAppContext and WinForms timers.
+- [x] MainForm owns NotifyIcon/menu, open/hide behavior, pause/resume, registry reload, and exit.
+- [x] Dark calibration UI with per-monitor resolution/scale, diagonal input, mode selector, and live 16-128 px sliders.
+- [x] Preserve Calibrated DPI anchors; slider edits capture current DPI, with 250 ms autosave and status feedback.
+- [x] Refresh monitor cards on display changes; synchronize controls affected by automatic-mode settings.
+- [x] Restore scheme on pause; resume marks new replacements dirty so final exit restores again.
+- [x] Build: zero warnings/errors; GUI smoke exits 0 and restores; all 29 Phase 2 checks pass.
+- [x] Inspect layout at 125%; UI Automation Pause/Resume and keyboard slider save/restoration checks passed.
+- [x] User verifies live sliders and moving the window between displays.
+- [x] User verifies close-to-tray/reopen and tray reload/pause/resume/exit restoration.
+- [x] Commit verified Phase 3 locally at user's request; never push.
 
-## Phase 4 (await Phase 3 confirmation)
+## Phase 4 (next; not started)
 - [ ] Registry Run startup with --minimized.
 - [ ] Elevated Task Scheduler startup option.
 - [ ] Publish and verify single-file win-x64 executable.

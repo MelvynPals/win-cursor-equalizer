@@ -4,6 +4,9 @@ using Microsoft.Win32;
 
 namespace CursorEqualizer;
 
+internal sealed record MonitorSnapshot(string Id, string Name, int Width, int Height,
+    uint Dpi, bool Primary, int TargetPixels, SizingMode Mode, double? DiagonalInches);
+
 internal sealed class CursorManager
 {
     private const int BasePixels = 32;
@@ -20,6 +23,47 @@ internal sealed class CursorManager
     private IntPtr lastMonitor;
     private bool stopping;
     private bool restored;
+    private bool paused;
+
+    internal event EventHandler? MonitorsChanged;
+    internal bool IsPaused { get { lock (gate) return paused; } }
+
+    internal IReadOnlyList<MonitorSnapshot> GetMonitorSnapshots()
+    {
+        lock (gate)
+            return monitors.Values.OrderBy(m => m.Name).Select(m => new MonitorSnapshot(
+                m.Id, m.Name, m.Bounds.Right - m.Bounds.Left, m.Bounds.Bottom - m.Bounds.Top,
+                m.DpiX, m.Primary, TargetPixels(m), settings!.ForMonitor(m.Id).Mode,
+                settings.ForMonitor(m.Id).DiagonalInches)).ToArray();
+    }
+
+    internal void NotifySettingsChanged()
+    {
+        lock (gate) lastMonitor = IntPtr.Zero;
+    }
+
+    internal void SetPaused(bool value)
+    {
+        lock (gate)
+        {
+            if (stopping || paused == value) return;
+            if (value && !RestoreRegistryScheme())
+                throw new InvalidOperationException("Could not restore the cursor scheme when pausing.");
+            paused = value;
+            lastMonitor = IntPtr.Zero;
+        }
+    }
+
+    internal void ReloadCursors()
+    {
+        lock (gate)
+        {
+            ReadCursorSources();
+            if (!RestoreRegistryScheme())
+                throw new InvalidOperationException("Could not reload the registry cursor scheme.");
+            lastMonitor = IntPtr.Zero;
+        }
+    }
 
     private sealed record MonitorDetails(IntPtr Handle, string Name, string Id, NativeMethods.RECT Bounds,
         uint DpiX, uint DpiY, bool Primary);
@@ -110,6 +154,7 @@ internal sealed class CursorManager
         primaryDpi = monitors.Values.Single(m => m.Primary).DpiX;
         // A new display snapshot invalidates the last applied monitor state.
         lastMonitor = IntPtr.Zero;
+        MonitorsChanged?.Invoke(this, EventArgs.Empty);
     }
 
     internal string ResolveMonitorId(string selector)
@@ -148,6 +193,7 @@ internal sealed class CursorManager
 
     private void ReadCursorSources()
     {
+        var discovered = new List<CursorSource>();
         using var key = Registry.CurrentUser.OpenSubKey(@"Control Panel\Cursors")
             ?? throw new InvalidOperationException("The current user's cursor registry key is missing.");
         Console.WriteLine("Registry cursor sources:");
@@ -167,11 +213,13 @@ internal sealed class CursorManager
                 Console.WriteLine($"  {role}: skipped (missing/unsupported file): {path}");
                 continue;
             }
-            sources.Add(new(role, id, path));
+            discovered.Add(new(role, id, path));
             Console.WriteLine($"  {role} ({id}): {path}");
         }
-        if (sources.Count == 0)
+        if (discovered.Count == 0)
             throw new InvalidOperationException("No usable custom .cur/.ani files found. Select a custom cursor scheme first.");
+        sources.Clear();
+        sources.AddRange(discovered);
     }
 
     private int TargetPixels(MonitorDetails monitor)
@@ -273,6 +321,7 @@ internal sealed class CursorManager
                     return;
                 }
             }
+            if (paused) return;
             // Secure desktop transitions can temporarily make position unavailable.
             if (!NativeMethods.GetCursorPos(out var point)) return;
             IntPtr handle = NativeMethods.MonitorFromPoint(point, NativeMethods.MONITOR_DEFAULTTONEAREST);
@@ -291,6 +340,9 @@ internal sealed class CursorManager
                 if (cursor == IntPtr.Zero)
                     throw new Win32Exception(Marshal.GetLastWin32Error(), $"LoadImageW failed for {source.Role}: {source.Path}");
                 string loaded = DescribeCursor(cursor);
+                // Pausing/reloading can restore the scheme; any new replacement
+                // must mark it dirty again so final exit still restores it.
+                restored = false;
                 // Ownership transfers to Windows; never reuse or destroy this handle after the call.
                 if (!NativeMethods.SetSystemCursor(cursor, source.Id))
                     throw new Win32Exception(Marshal.GetLastWin32Error(), $"SetSystemCursor failed for {source.Role}.");
@@ -305,11 +357,15 @@ internal sealed class CursorManager
         lock (gate)
         {
             stopping = true;
-            if (restored) return true;
-            restored = NativeMethods.SystemParametersInfoW(NativeMethods.SPI_SETCURSORS, 0, IntPtr.Zero, 0);
-            if (restored) Console.WriteLine("Registry cursor scheme restored.");
-            else Console.Error.WriteLine($"Cursor restoration FAILED (Win32 {Marshal.GetLastWin32Error()}). Run dotnet run -- --restore.");
-            return restored;
+            return restored || RestoreRegistryScheme();
         }
+    }
+
+    private bool RestoreRegistryScheme()
+    {
+        restored = NativeMethods.SystemParametersInfoW(NativeMethods.SPI_SETCURSORS, 0, IntPtr.Zero, 0);
+        if (restored) Console.WriteLine("Registry cursor scheme restored.");
+        else Console.Error.WriteLine($"Cursor restoration FAILED (Win32 {Marshal.GetLastWin32Error()}). Run dotnet run -- --restore.");
+        return restored;
     }
 }
