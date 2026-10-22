@@ -33,6 +33,12 @@ internal sealed class TrayAppContext : ApplicationContext
     {
         this.manager = manager;
         form = new MainForm(manager, settings);
+        form.HandleCreated += (_, _) =>
+        {
+            int dark = 1;
+            // A cosmetic request; unsupported Windows versions keep their system frame.
+            NativeMethods.DwmSetWindowAttribute(form.Handle, NativeMethods.DWMWA_USE_IMMERSIVE_DARK_MODE, ref dark, sizeof(int));
+        };
         form.ExitRequested += (_, _) => ExitThread();
         displayChanged = (_, _) => manager.RequestDisplayRefresh();
         SystemEvents.DisplaySettingsChanged += displayChanged;

@@ -1,6 +1,23 @@
 ﻿# CursorEqualizer TODO
 
-Current phase: Phase 3 verified by the user on 2026-10-23 and committed locally at their request. Clean build and all 29 existing checks pass. User confirmed all four requested checks: live sliders, moving the window between displays, close/reopen from tray, and tray reload/pause/resume/exit restoration. Phase 4 is next; not started. Phase 2 is committed as 33865de.
+Current work: responsive UI redesign and slider fixes completed on `new-design`; user explicitly requested the local commit. Phase 3 was verified and committed as 583896e; design preparation is committed as 88ba364. Phase 4 has not started. Phase 2 is committed as 33865de.
+
+## Design experiment
+- [x] Create and switch to `new-design` from verified Phase 3.
+- [x] Preserve the verified Phase 3 window screenshot at `references/design-before.png` for comparison.
+- [x] Install Anthropic `frontend-design` into `.agents/skills`.
+- [x] Install Emil Kowalski's main `emil-design-eng` skill into `.agents/skills`.
+- [x] Install Taste's `design-taste-frontend` skill and bundled resources into `.agents/skills`.
+- [x] Apply all three skills to the native WinForms UI: black surfaces, aligned display rows, prominent pixel readouts, painted sliders, segmented mode controls, and immediate feedback.
+- [x] Rebuild display rows when window DPI changes; keep row widths fitted when scrollbars/layout change.
+- [x] Capture `references/design-after.png` at 125% and `references/design-after-200.png` at 200% for comparison with the baseline.
+- [x] Build with zero warnings/errors; all 29 engine checks pass; GUI smoke exits 0 and restores cursors.
+- [x] Native UI Automation: pause/resume; keyboard slider increment/autosave and decrement with exact original settings restored. Inspect screenshots after moving between both displays.
+- [x] Fix reported slider drag/paint defects: replace mixed native/custom trackbar with one fully painted input control; clear each frame and capture drags outside bounds.
+- [x] Fix maximized stretching with a centered 960 logical px content cap; stack monitor details above controls below 660 logical px row width; repaint rounded surfaces on resize.
+- [x] Exercise actual pointer dragging at 125% and 200%, 16/128 boundary clamps, 72 px midpoint, autosave, keyboard and exact original JSON restoration. Capture maximized, narrow, and post-drag evidence in references.
+- [ ] User rechecks corrected pointer dragging/live preview, mode and diagonal editing, tray behavior, and responsive layout on both physical displays.
+- [x] User authorizes committing the responsive redesign and slider fixes locally; never push.
 
 ## Next phase
 - Phase 4: standard Registry Run startup with --minimized, elevated Task Scheduler startup, and single-file win-x64 packaging.
