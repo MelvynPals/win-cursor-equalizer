@@ -11,6 +11,10 @@ internal static class NativeMethods
     internal const uint IMAGE_CURSOR = 2;
     internal const uint LR_LOADFROMFILE = 0x0010;
     internal const uint SPI_SETCURSORS = 0x0057;
+    internal const uint DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
+
+    [DllImport("dwmapi.dll", ExactSpelling = true)]
+    internal static extern int DwmSetWindowAttribute(IntPtr window, uint attribute, ref int value, uint size);
     internal const uint EDD_GET_DEVICE_INTERFACE_NAME = 1;
     internal const uint DISPLAY_DEVICE_ACTIVE = 1;
     internal const uint OCR_NORMAL = 32512, OCR_IBEAM = 32513, OCR_WAIT = 32514,

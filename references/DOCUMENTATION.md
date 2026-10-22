@@ -6,8 +6,9 @@ Phase 3 is implemented as a .NET 8 (`net8.0-windows`, WinForms, WinExe) tray uti
 - `Program.cs`: first-call Per Monitor V2 DPI awareness, session-local single-instance mutex, exit/crash/session hooks.
 - `TrayAppContext.cs`: WinForms message loop, 15 ms UI-thread poll timer, display-event subscription, GUI lifecycle and cleanup.
 - `MainForm.cs`: dark calibration window, per-monitor controls, tray icon/menu, autosave feedback. No P/Invoke calls or interop imports.
+- `DesignControls.cs`: shared visual palette, rounded setting surfaces, painted buttons, a fully painted mouse/keyboard slider, and native radio-button mode selector.
 - `ConsoleApp.cs`: explicit diagnostic/configuration options and console polling mode, retained for testing/recovery.
-- `NativeMethods.cs`: all user32.dll, shcore.dll, and gdi32.dll declarations, constants, and structures.
+- `NativeMethods.cs`: all user32.dll, shcore.dll, gdi32.dll, and dwmapi.dll declarations, constants, and structures.
 - `CursorManager.cs`: monitor identities/DPI, registry cursor sources, sizing math, refresh requests, transition-only cursor replacement, restoration.
 - `SettingsManager.cs`: validated JSON loading and atomic save in `%AppData%\CursorEqualizer\settings.json`.
 - `tests/Phase2Checks/`: dependency-free focused sizing and settings checks.
@@ -23,7 +24,37 @@ Three project-local skills were installed into `.agents/skills` using the Codex 
 | `emil-design-eng` | [emilkowalski/skills: skills/emil-design-eng](https://github.com/emilkowalski/skills/tree/main/skills/emil-design-eng) |
 | `design-taste-frontend` | [Leonxlnx/taste-skill: skills/taste-skill](https://github.com/Leonxlnx/taste-skill/tree/main/skills/taste-skill) |
 
-The supplied `emilkowalski/skill` URL redirects to the plural `skills` repository; its main design-engineering skill was selected. Taste's declared skill name is `design-taste-frontend`. Installed skill files and bundled resources are retained in the repository for this branch. They become available on the next turn. Their web-oriented design principles can be evaluated for WinForms while preserving the existing architecture, calibrated sizing, and restoration behavior. Phase 4 remains deferred during this design experiment.
+The supplied `emilkowalski/skill` URL redirects to the plural `skills` repository; its main design-engineering skill was selected. Taste's declared skill name is `design-taste-frontend`. Installed skill files and bundled resources are retained in the repository for this branch. Phase 4 remains deferred during this design experiment.
+
+## Design experiment implementation
+The user authorized applying the design on 2026-10-23. Taste app-screen direction: `true-black-flat`, seed `1165514722`, settings/devtools, dark, with Segoe UI retained (`--keep type`). Black ground, #111111 surfaces, white text, #B4B4B4 secondary text, and display-inspired #4CB3F0 accent. No decorative animation or additional dependencies. Frontend-design guides hierarchy and composition; Emil guides immediate feedback, focus, and native control behavior.
+
+| Before | After | Why |
+| --- | --- | --- |
+| Outlined stacked cards | Display identity beside a filled tuning surface | Separate monitor context from controls |
+| Small pixel labels | Large right-aligned pixel readouts | Compare saved targets quickly |
+| Default bright slider styling | One painted slider owns its rail, thumb and input | Keep dragging and rendering aligned |
+| Dropdown mode and numeric spinner | Calibrated / Fixed / Auto radio segments and decimal input | Show available behavior without opening a menu |
+| Light system frame | Dark frame via DwmSetWindowAttribute | Match the app surfaces |
+
+The header exposes Pause/Resume and a More actions button sharing the tray menu. Mode hints explain scaling behavior. Diagonal edits validate on Enter or focus loss (blank/0 clears the diagonal); invalid values show an error without saving. Slider edits remain live with 250 ms autosave. Arrow keys change one pixel; Page keys four; Home/End select 16/128. DPI transitions rebuild monitor rows using the new window DPI. Smaller work areas scroll vertically; resizing on return to a larger display can reveal both full rows.
+
+`TrayAppContext` requests `DWMWA_USE_IMMERSIVE_DARK_MODE` (20) through the centralized NativeMethods declaration when the form handle is created. Unsupported Windows versions keep their default frame. MainForm makes no native calls.
+
+Comparison captures: [before at 125%](design-before.png), [after at 125%](design-after.png), [after at 200%](design-after-200.png). The baseline is 918 x 909 px; the redesigned primary capture is 968 x 929 px. The 200% capture fits the work area and uses vertical scrolling. The engine and calibrated references remain D1=32@120 DPI and D2=23@192 DPI.
+
+Verification: clean build (zero warnings/errors), 29 existing engine/settings checks passed, final two-second GUI smoke exited 0 and logged cursor restoration. Native UI Automation verified Pause/Resume and keyboard slider increment/autosave/decrement with exact original JSON restored. Screenshots were inspected at 125% and 200%; the final layout fixes include header anchoring, label widths, rebuilding rows at the new DPI, and resizing rows during scroll layout changes. Physical mouse dragging, edited diagonal/mode interaction, and the redesigned tray flow still await user confirmation.
+
+Taste's browser inspector cannot inspect native WinForms. Its static linter was attempted and reported no supported source files for C#; no browser or static-lint pass is claimed. Native screenshots and UI Automation provide the verification for this experiment. The user explicitly authorized the local redesign commit after the responsive and slider corrections.
+
+## Responsive layout and slider correction
+The user's maximized-window and drag screenshots exposed defects in the first design pass. The native TrackBar and custom painter had separate thumb/input geometry and overlapping drawing. PixelSlider is now a double-buffered UserControl with one pixel-to-position mapping for painting, clicking, dragging, and mouse capture. It clears the full background before every frame; invalidation follows every value change. Release outside the control clamps to 16-128. Arrow/Page/Home/End keyboard input, accessible naming, MSAA slider role/value, and autosave remain supported. Native UI Automation resolves the slider by its display-specific name.
+
+The entire settings content (header, monitor rows, footer) is centered and capped at 960 logical pixels. Below 660 logical pixels of row width, each monitor stacks its identity above the controls; resolution and scaling move beside the identity. The minimum window width is 520 logical pixels. Narrow or short work areas scroll vertically. Rounded surfaces repaint on resize, preventing stale corners/rectangles. Maximized windows retain the maximized state during display fitting.
+
+Additional comparison captures: [maximized](design-responsive-wide.png), [narrow stacked](design-responsive-narrow.png), [after repeated dragging](design-slider-drag.png). The drag capture intentionally shows a temporary 72 px target; the saved setup was restored to D1=32@120 and D2=23@192 afterward.
+
+Verification of the corrected implementation: final build zero warnings/errors; all 29 engine/settings checks pass; final GUI smoke exits 0 and logs registry restoration. Actual pointer dragging at 125% crossed multiple positions and saved midpoint=72 px, then keyboard restored the exact original JSON. At 200%, pointer capture outside both ends saved 16 and 128 px, midpoint saved 72 px, and keyboard restored the exact original JSON. Native screenshots were inspected for maximized, narrow, standard, and 200% layouts. The original keyboard-only test did not detect the mouse defect; this verification includes real mouse input. The user subsequently requested the local commit. Remaining physical interaction checks are retained in TODO.md without being marked as tested.
 
 ## Settings and identity
 JSON version 1 contains `BasePixels` (16-128, default 32) and `Monitors`, a case-insensitive dictionary keyed by monitor device interface ID. Each entry has `Mode` (`Auto`, `Manual`, or `Calibrated`), nullable `DiagonalInches` (>0 to 200), `ManualPixels` (16-128), `CalibrationPixels` (16-128), and nullable positive `CalibrationDpi`. Calibrated mode requires a reference DPI. Existing Auto/Manual settings without the new fields continue to load.
