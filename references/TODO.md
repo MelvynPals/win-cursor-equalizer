@@ -1,6 +1,6 @@
 ﻿# CursorEqualizer TODO
 
-Current work: Phase 4 elevated Task Scheduler startup is verified after restart: the user confirms it is active and working. Committing this milestone on `main`. Standard startup is verified after restart and committed as 4f55f22; single-file packaging has not started. Responsive UI redesign and slider fixes are committed as e6b63a1. Phase 3 is committed as 583896e; design preparation as 88ba364; Phase 2 as 33865de.
+Current work: Phase 4 implementation is complete: the user confirms the published single-file release works. Elevated startup targets the published exe; committing the publishing milestone on `main`. Remaining optional/regression checks are retained below. Elevated startup is verified after restart and committed as 3e2dd7a; standard startup as 4f55f22. Responsive UI redesign and slider fixes are committed as e6b63a1. Phase 3 is committed as 583896e; design preparation as 88ba364; Phase 2 as 33865de.
 
 ## Design experiment
 - [x] Create and switch to `new-design` from verified Phase 3.
@@ -20,7 +20,7 @@ Current work: Phase 4 elevated Task Scheduler startup is verified after restart:
 - [x] User authorizes committing the responsive redesign and slider fixes locally; never push.
 
 ## Next phase
-- Phase 4: standard and elevated startup both verified after restart; single-file win-x64 packaging is next.
+- Phase 4 implementation completed with user confirmation: standard/elevated startup and single-file publishing. No further development phase is defined; remaining regression checks are listed below.
 - Phase 3 UI checks were confirmed; standard and elevated startup both have user-confirmed restart verification.
 - Continue regression checks for restart persistence, smaller-window scrolling, and physical hotplug as relevant.
 
@@ -86,10 +86,20 @@ Current work: Phase 4 elevated Task Scheduler startup is verified after restart:
 - [x] Build zero warnings/errors; 46 focused tests pass; GUI smoke exits 0 and restores cursors.
 - [x] Real UAC-backed UI test: Standard -> Elevated -> Standard -> Elevated. Verify enabled task/current-user identity/highest interactive privileges and remove the duplicate Run entry; restoring Standard deletes the task and restores Run.
 - [x] User restarted with elevated startup enabled and confirmed the app is active and working.
-- [ ] Separately confirm the process token in Task Manager and post-restart tray Exit restoration; these details were not explicitly reported.
+- [x] During publishing verification, query the actual scheduled published process token: Elevated=1.
+- [ ] Separately verify post-restart tray Exit restoration on physical displays; this detail was not explicitly reported.
 - [ ] Exercise UAC cancellation/failure rollback explicitly; these paths are implemented but were not forced in this run.
 - [x] Commit the elevated-startup milestone after user verification; never push.
-- [ ] Publish and verify single-file win-x64 executable.
+- [x] Add Properties/PublishProfiles/WinX64.pubxml for framework-dependent single-file win-x64 release publishing with embedded symbols and no trimming.
+- [x] Publish successfully with zero warnings/errors; output contains only CursorEqualizer.exe (260,228 bytes). All 46 focused checks pass.
+- [x] Copy only the exe into a fresh isolated test folder; local .NET 8 Windows Desktop runtime is installed.
+- [x] Isolated exe-only copy from TEMP: --list, console/GUI smoke exit 0, cursor restoration logs, Pause/Resume, real pointer 72px midpoint and keyboard 73px, exact calibration restoration, and normal menu exit.
+- [x] Published duplicate instance rejected with exit 1 without opening another UI.
+- [x] Update elevated startup through the published app to the canonical published exe, verify --minimized/no Run duplicate, launch the real scheduled task and confirm its process path and elevated token.
+- [x] Verify scheduled published startup is hidden/minimized and preserves exact original calibration JSON; leave it running.
+- [x] User confirms the published app works after the requested monitor check.
+- [ ] A later restart can additionally regress the migrated published executable path; direct task execution already passed.
+- [x] Commit the verified publishing milestone locally after user confirmation; never push.
 
 ## Open checks
 - Requested Auto formula computes about 13.06 px (clamped to 16) for 24.5-inch D1 at 125% and provisional 16-inch D2 at 200%. This contradicts prior visual evidence that 20 px was already too small. Auto math is implemented as specified; the current test instead uses empirical Calibrated references. Exact physical equality is still unmeasured.
