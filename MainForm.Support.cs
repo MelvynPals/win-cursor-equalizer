@@ -32,6 +32,19 @@ internal sealed partial class MainForm
             AutoScroll = true, BackColor = Surface, Margin = Padding.Empty, TabIndex = 1
         };
         supportBody = body;
+        // Clip the native scrollbar outside the viewport; keep native wheel/focus scrolling.
+        var viewport = new Panel { Dock = DockStyle.Fill, BackColor = Surface, Margin = Padding.Empty };
+        var scroll = new DesignScrollBar(body) { Dock = DockStyle.Right, Width = 32, BackColor = Surface };
+        viewport.Controls.Add(body);
+        body.Dock = DockStyle.None;
+        void FitViewport()
+        {
+            scroll.Width = (int)Math.Round(32 * DeviceDpi / 96.0);
+            body.Bounds = new Rectangle(0, 0,
+                viewport.ClientSize.Width + (int)Math.Ceiling(SystemInformation.VerticalScrollBarWidth * DeviceDpi / 96.0),
+                viewport.ClientSize.Height);
+        }
+        viewport.SizeChanged += (_, _) => FitViewport();
         var identity = new Panel { Height = 86, Margin = new Padding(0, 8, 0, 14), BackColor = Surface };
         identity.Controls.Add(new PictureBox
         {
@@ -80,13 +93,17 @@ internal sealed partial class MainForm
             body.Controls.Add(button);
             return button;
         }
-        if (ProjectLinks.Donation is Uri donation)
+        TextRow("Keep it going", true);
+        TextRow("If CursorEqualizer makes your setup easier, you can support its development.", false, 16);
+        LinkButton("Support with PayPal", ProjectLinks.PayPal, true);
+        var qrButton = new DesignButton
         {
-            TextRow("Keep it going", true);
-            TextRow("If CursorEqualizer makes your setup easier, you can support its development.", false, 16);
-            LinkButton("Buy me a coffee", donation, true);
-            TextRow("Opens Ko-fi in your browser.", false, 30);
-        }
+            Text = "Show QR Ph", Height = 40, Margin = new Padding(0, 0, 0, 10),
+            AccessibleDescription = "Shows the GoTyme receiving QR code for bank or wallet transfers."
+        };
+        qrButton.Click += (_, _) => RunAction(ShowQrPh);
+        body.Controls.Add(qrButton);
+        TextRow("PayPal opens in your browser. QR Ph can be scanned using a compatible bank or wallet.", false, 30);
         TextRow("Have an idea or a bug?", true);
         TextRow("Share what happened or suggest an improvement.", false, 16);
         LinkButton("Send feedback", ProjectLinks.Feedback, false);
@@ -99,8 +116,8 @@ internal sealed partial class MainForm
             sizing = true;
             try
             {
-                int width = Math.Max(1, body.ClientSize.Width -
-                    (body.VerticalScroll.Visible ? SystemInformation.VerticalScrollBarWidth : 0));
+                FitViewport();
+                int width = Math.Max(1, viewport.ClientSize.Width);
                 foreach (Control control in body.Controls)
                 {
                     if (control is Label) control.MaximumSize = new Size(width, 0);
@@ -110,7 +127,10 @@ internal sealed partial class MainForm
             finally { sizing = false; }
         };
         body.SizeChanged += (_, _) => body.PerformLayout();
-        supportSidebar.Controls.Add(body);
+        var scroller = new Panel { Dock = DockStyle.Fill, BackColor = Surface };
+        scroller.Controls.Add(viewport);
+        scroller.Controls.Add(scroll);
+        supportSidebar.Controls.Add(scroller);
         supportSidebar.Controls.Add(top);
         Controls.Add(supportSidebar);
     }

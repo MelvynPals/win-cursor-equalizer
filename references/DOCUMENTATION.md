@@ -7,10 +7,12 @@ Phase 3 is implemented as a .NET 8 (`net8.0-windows`, WinForms, WinExe) tray uti
 - `TrayAppContext.cs`: WinForms message loop, 15 ms UI-thread poll timer, display-event subscription, GUI lifecycle and cleanup.
 - `MainForm.cs`: dark calibration window, per-monitor controls, tray icon/menu, autosave feedback. No P/Invoke calls or interop imports.
 - `MainForm.Support.cs`: partial MainForm for the closable support/about drawer, creator credit and outbound actions.
+- `MainForm.Donations.cs`: modal receiving QR viewer with aspect-preserving rendering and working-area fitting.
 - `ProjectLinks.cs`: maintainer name and HTTPS destinations; opens the default browser only after a user clicks.
 - `Assets/AppIcon.ico`, `Assets/AppLogo.png`: embedded branding and executable icon, derived from references/icon.svg.
 - `tools/Export-Icon.ps1`: optional developer SVG-to-PNG/ICO export using an isolated headless Edge profile and System.Drawing; not a runtime dependency.
 - `DesignControls.cs`: shared visual palette, rounded setting surfaces, painted buttons, a fully painted mouse/keyboard slider, and native radio-button mode selector.
+- `DesignScrollBar.cs`: dark rounded scrollbar with mouse capture, track paging, wheel and keyboard input for the support drawer.
 - `ConsoleApp.cs`: explicit diagnostic/configuration options and console polling mode, retained for testing/recovery.
 - `NativeMethods.cs`: all user32.dll, shcore.dll, gdi32.dll, and dwmapi.dll declarations, constants, and structures.
 - `CursorManager.cs`: monitor identities/DPI, registry cursor sources, sizing math, refresh requests, transition-only cursor replacement, restoration.
@@ -92,8 +94,26 @@ The cursor's long left stem concentrates its visible weight left of the bounding
 
 Verification: build and single-file publish succeed without warnings/errors. Native close-button captures at both display scales and close/reopen/Escape focus restoration pass. Normal published exit logs restoration; a final exe-only GUI smoke exits 0 and logs registry cursor restoration. The user subsequently authorized the local commit after reviewing the centering changes. The existing 46 engine checks passed during the sidebar feature; no engine or settings behavior was changed by this visual correction.
 
-The owner reports their Ko-fi checkout only offers PayPal and asks for broader options. Buy Me a Coffee is recommended for major cards, Apple Pay and Google Pay in supported regions, with one-time support requiring no donor account; its platform fee is 5% plus processing fees. Its payout-country list includes the Philippines. For GCash/Maya, PayMongo's reusable Payment Pages are another option. The configured Ko-fi destination is retained until the owner supplies an actual replacement page URL. No payment account or transaction was created.
+The owner reports their Ko-fi checkout only offers PayPal and asks for broader options. Buy Me a Coffee is recommended for major cards, Apple Pay and Google Pay in supported regions, with one-time support requiring no donor account; its platform fee is 5% plus processing fees. Its payout-country list includes the Philippines. For GCash/Maya, PayMongo's reusable Payment Pages are another option. The owner subsequently reports they are not eligible for Stripe, so Buy Me a Coffee is ruled out for their account despite country-level availability. Future provider selection must account for their payout country and personal versus registered-business status. The configured Ko-fi destination is retained until the owner supplies an actual replacement page URL. No payment account or transaction was created.
 Sources: [Buy Me a Coffee payment methods](https://help.buymeacoffee.com/en/articles/10182730-what-is-buy-me-a-coffee-and-how-does-it-work), [payout countries](https://help.buymeacoffee.com/en/articles/6258038-supported-countries-for-payouts-on-buy-me-a-coffee), [PayMongo Payment Pages](https://www.paymongo.com/products/accept-payments/payment-pages).
+
+## PayPal and QR Ph support
+The owner selected PayPal plus QR Ph after reporting Stripe ineligibility, then supplied https://paypal.me/emjaypals and a GoTyme receiving QR PNG. These replace the earlier Ko-fi action: Support with PayPal opens that exact HTTPS destination and Show QR Ph opens the embedded receiving image. Assets/DonationQrPh.png is byte-for-byte identical to the supplied image (SHA-256 52336884566656926B67780A069DC155F54012EFC0ADA3415146AB12E500990A); no QR payload is invented or regenerated. The exported image includes the recipient name and masked account number and is bundled into the executable for display.
+
+MainForm.Donations.cs loads CursorEqualizer.DonationQrPh from the assembly, preserves its aspect ratio with nearest-neighbor rendering, and provides Close/Escape behavior. The modal is fitted to the parent monitor's working area after DPI scaling. Its nested WinForms message loop keeps the cursor polling timer running. Payment completion stays in the sender's bank or wallet app; the caption asks them to confirm the recipient there. No API key, payment submission or payment confirmation service is added.
+
+Verification: build and single-file publish succeed with zero warnings/errors; GUI smoke exits 0 with registry cursor restoration. Native action names are present; actual mouse input opens the QR modal and keyboard checks pass Close/reopen/Escape. The published QR screenshot is references/support-qr-ph.png, inspected with the full image and controls visible. UI Automation Invoke was unreliable for the custom button; actual mouse/keyboard input was used. The running published app is left with the QR modal open for owner scan verification. The owner still needs to check recipient recognition, the PayPal browser destination and QR dialog fitting on the 200% display; no payment was submitted.
+
+## Sidebar scrollbar polish
+The owner requested a darker scrollbar aligned to the close icon and explicitly authorized the local commit. The support body retains native FlowLayoutPanel scrolling inside a clipped viewport; its native scrollbar sits beyond the viewport edge. A 32 logical px custom scrollbar column shares the close button's centerline. The visible rail is 4 logical px and the rounded thumb is 6 logical px with a 32 logical px minimum length, hover/drag feedback and keyboard focus outline. The rail is omitted when content fits. Native wheel and focused-child scrolling remain available; the custom control also supports dragging with mouse capture, track page clicks, wheel input, Up/Down, Page Up/Down, Home and End. It exposes an MSAA scrollbar role/value using the existing custom-slider accessibility pattern.
+
+| Before | After | Why |
+| --- | --- | --- |
+| Bright native track and arrow buttons | Dark rail and rounded thumb | Match the existing surfaces |
+| Scrollbar offset from close icon | Shared centerline in a 32px column | Align the right-side controls |
+| Native chrome reappeared during 200% transition | Refit viewport and scrollbar width after layout/DPI changes | Keep clipping correct across monitors |
+
+Verification: clean build and single-file publish have zero warnings/errors. Actual mouse thumb dragging and keyboard End/Home move content and return it to the original position; wheel input was exercised. Native captures references/support-scrollbar.png and references/support-scrollbar-200.png were inspected after moving between 125% and 200% displays. Accessibility-name lookup was unreliable, so input checks used actual mouse and keyboard events. The calibration engine, persistence and startup registration are unchanged.
 
 ## Settings and identity
 JSON version 1 contains `BasePixels` (16-128, default 32) and `Monitors`, a case-insensitive dictionary keyed by monitor device interface ID. Each entry has `Mode` (`Auto`, `Manual`, or `Calibrated`), nullable `DiagonalInches` (>0 to 200), `ManualPixels` (16-128), `CalibrationPixels` (16-128), and nullable positive `CalibrationDpi`. Calibrated mode requires a reference DPI. Existing Auto/Manual settings without the new fields continue to load.
@@ -155,7 +175,7 @@ dotnet run --project tests/Phase2Checks/Phase2Checks.csproj
 - Calibrated mode remains the recommended test setup. Slider edits capture the selected display's current DPI with the new reference size. Fixed pixels corresponds to Manual; Automatic uses the original diagonal formula. Moving the slider in Automatic switches to Calibrated.
 - Diagonal 0 means unknown. Changes preview through CursorManager immediately and save after a 250 ms debounce. Settings flush when closing the window or exiting. Save failures appear in the status line.
 - For immediate visual preview, move Settings onto the display being calibrated, then adjust its slider. Otherwise the new size appears when the pointer next enters that display.
-- Closing Settings or clicking Hide to tray leaves the equalizer running. Double-click the tray icon, or right-click and select Open Settings, to reopen it. Windows may put the icon in the hidden-icons area.
+- Hide to tray uses the shared primary button style (white fill, black text, matching hover/pressed states); Support & about remains secondary. Closing Settings or clicking Hide to tray leaves the equalizer running. Double-click the tray icon, or right-click and select Open Settings, to reopen it. Windows may put the icon in the hidden-icons area.
 - Tray actions: Open Settings, Pause/Resume Equalizer, Reload Cursors from Registry, Exit & Restore Default Cursors. Pause is also available in Settings.
 - Exit stops timers, unsubscribes display events, flushes settings, restores registry cursors, closes the form, and disposes the tray icon. Startup failure and UI-thread error handlers also restore cursors.
 - Standard and elevated Windows startup modes are available in the shared menu. Elevated startup has user-confirmed restart verification; single-file publishing is verified and user-confirmed.

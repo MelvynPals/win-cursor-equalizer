@@ -12,5 +12,6 @@
     <Compile Remove="tests/**/*.cs" />
     <EmbeddedResource Include="Assets\AppIcon.ico" LogicalName="CursorEqualizer.AppIcon" />
     <EmbeddedResource Include="Assets\AppLogo.png" LogicalName="CursorEqualizer.AppLogo" />
+    <EmbeddedResource Include="Assets\DonationQrPh.png" LogicalName="CursorEqualizer.DonationQrPh" />
   </ItemGroup>
 </Project>

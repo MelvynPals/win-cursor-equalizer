@@ -10,7 +10,7 @@ internal static class ProjectLinks
         "title=" + Uri.EscapeDataString("Feedback: ") + "&body=" + Uri.EscapeDataString(
             "## Issue or suggestion\n\nDescribe what happened or what you would like improved.\n\n" +
             "## Setup\n\n- Windows version:\n- Display scaling:\n"));
-    internal static readonly Uri Donation = new("https://ko-fi.com/emjay0303");
+    internal static readonly Uri PayPal = new("https://paypal.me/emjaypals");
 
     internal static void Open(Uri destination)
     {

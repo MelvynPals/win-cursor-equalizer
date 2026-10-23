@@ -1,22 +1,28 @@
 ﻿# CursorEqualizer TODO
 
-Current work: support sidebar, Ko-fi/GitHub links, MelvynPals credit, and supplied SVG branding are implemented and published. Native UI/resource checks pass; the user explicitly authorized the local feature commit. The owner will make the repository public for feedback access. Phase 4 publishing is completed and committed as d1422d5.
+Current work: PayPal/QR Ph support, primary Hide to tray styling and dark sidebar scrolling are built/published. The owner authorized committing these changes after requesting the scrollbar polish. Recipient scan and PayPal browser checks remain owner release checks below.
 
 ## Support sidebar and branding (authorized 2026-10-24)
+- [x] Style Hide to tray as a primary white/black button at user request; clean build/publish and native screenshot verified.
+- [x] Replace the sidebar's bright native scrollbar with a rounded dark rail/thumb aligned to the close-button centerline; retain native content wheel/focus scrolling and add drag, page click and keyboard input. Verify Home/End and real thumb dragging; exercise wheel input. Inspect 125% and 200% captures, including corrected DPI-transition clipping.
 - [x] Confirm creator credit MelvynPals; choose Ko-fi for donations and GitHub issues for feedback.
 - [x] Render the supplied references/icon.svg and generate multi-resolution Assets/AppIcon.ico plus embedded AppLogo.png; add a repeatable export script.
 - [x] Embed the logo in the header, tray and window, and compile the icon into the executable.
 - [x] Add a closable Support & about drawer, docked on wide windows and overlaid on narrow ones; add Escape close and profile credit.
 - [x] Wire Buy me a coffee to the supplied Ko-fi handle: https://ko-fi.com/emjay0303.
 - [x] Owner confirms using this repository for feedback and will make it public; wire the issue composer without changing repository visibility.
-- [ ] Before public distribution, verify the repository is public with Issues enabled. Public API currently returns 404. Ko-fi returned 403 to automated clients; owner should check the donation link in a normal browser.
+- [ ] Before public distribution, verify the repository is public with Issues enabled. Public API currently returns 404. Owner should check the PayPal destination in a normal browser.
 - [x] Inspect native normal/narrow/wide/200% screenshots; verify close/reopen, Escape focus restoration, four-action Tab cycle, Pause/Resume and vertical-only scrolling.
 - [x] Fix stale horizontal scroll styles after DPI changes and wrap the sidebar identity caption to available width.
 - [x] Build/publish zero warnings/errors; all 46 existing checks pass. Final exe-only GUI smoke exits 0 with cursor restoration; actual executable icon extracts correctly and ICO contains nine resolutions.
 - [x] Fix close glyph centering with symmetric painted strokes, removing font-bearing/baseline bias; native 125%/200% captures place glyph within 0.1px of button visual center.
 - [x] Optically center logo artwork with translate(64 -16); keep original in icon-original.svg and export final references/icon.svg plus 1024px references/icon.png. Regenerate embedded PNG/ICO and published exe.
 - [x] Centering changes build/publish without warnings/errors; close/reopen/Escape and final exe-only smoke/restoration pass.
-- [ ] Owner may replace Ko-fi with a broader provider; Buy Me a Coffee recommended for cards/wallets. Await a real replacement page URL before changing the configured destination.
+- [x] Owner selects PayPal plus QR Ph after ruling out Stripe-based Buy Me a Coffee.
+- [x] Prepare a QR Ph viewer with aspect-preserving sharp rendering, Close/Escape behavior and a successful build; no receiving data is fabricated.
+- [x] Receive https://paypal.me/emjaypals and the GoTyme receiving QR; replace Ko-fi with Support with PayPal and Show QR Ph. Embed the exact original PNG (matching SHA-256).
+- [x] Build/publish zero warnings/errors; GUI smoke exits 0 and restores cursors. Native PayPal/QR action presence and actual mouse QR opening verified; Close/reopen/Escape pass. Inspect references/support-qr-ph.png with the original recipient image visible and no clipping.
+- [ ] User verifies a bank/wallet scan resolves the correct recipient and checks PayPal in their browser; additionally inspect QR dialog fitting on the 200% display. No payment is submitted automatically.
 - [x] User explicitly authorizes committing the support sidebar, links, branding and optical-centering fixes locally; never push. External destination checks remain listed above.
 
 ## Design experiment

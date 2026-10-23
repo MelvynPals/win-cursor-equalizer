@@ -88,6 +88,7 @@ internal sealed partial class MainForm : Form
         footer.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 130));
         status = new Label { Text = "All changes saved", ForeColor = Muted, Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft, AutoEllipsis = true };
         var hideButton = MakeButton("Hide to tray", (_, _) => Hide());
+        ((DesignButton)hideButton).Primary = true;
         supportToggle = MakeButton("Support & about", (_, _) => SetSupportOpen(!supportOpen));
         supportToggle.AccessibleName = "Open support sidebar";
         footer.Controls.Add(status, 0, 0);
