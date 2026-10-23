@@ -1,6 +1,23 @@
 ﻿# CursorEqualizer TODO
 
-Current work: Phase 4 implementation is complete: the user confirms the published single-file release works. Elevated startup targets the published exe; committing the publishing milestone on `main`. Remaining optional/regression checks are retained below. Elevated startup is verified after restart and committed as 3e2dd7a; standard startup as 4f55f22. Responsive UI redesign and slider fixes are committed as e6b63a1. Phase 3 is committed as 583896e; design preparation as 88ba364; Phase 2 as 33865de.
+Current work: support sidebar, Ko-fi/GitHub links, MelvynPals credit, and supplied SVG branding are implemented and published. Native UI/resource checks pass; the user explicitly authorized the local feature commit. The owner will make the repository public for feedback access. Phase 4 publishing is completed and committed as d1422d5.
+
+## Support sidebar and branding (authorized 2026-10-24)
+- [x] Confirm creator credit MelvynPals; choose Ko-fi for donations and GitHub issues for feedback.
+- [x] Render the supplied references/icon.svg and generate multi-resolution Assets/AppIcon.ico plus embedded AppLogo.png; add a repeatable export script.
+- [x] Embed the logo in the header, tray and window, and compile the icon into the executable.
+- [x] Add a closable Support & about drawer, docked on wide windows and overlaid on narrow ones; add Escape close and profile credit.
+- [x] Wire Buy me a coffee to the supplied Ko-fi handle: https://ko-fi.com/emjay0303.
+- [x] Owner confirms using this repository for feedback and will make it public; wire the issue composer without changing repository visibility.
+- [ ] Before public distribution, verify the repository is public with Issues enabled. Public API currently returns 404. Ko-fi returned 403 to automated clients; owner should check the donation link in a normal browser.
+- [x] Inspect native normal/narrow/wide/200% screenshots; verify close/reopen, Escape focus restoration, four-action Tab cycle, Pause/Resume and vertical-only scrolling.
+- [x] Fix stale horizontal scroll styles after DPI changes and wrap the sidebar identity caption to available width.
+- [x] Build/publish zero warnings/errors; all 46 existing checks pass. Final exe-only GUI smoke exits 0 with cursor restoration; actual executable icon extracts correctly and ICO contains nine resolutions.
+- [x] Fix close glyph centering with symmetric painted strokes, removing font-bearing/baseline bias; native 125%/200% captures place glyph within 0.1px of button visual center.
+- [x] Optically center logo artwork with translate(64 -16); keep original in icon-original.svg and export final references/icon.svg plus 1024px references/icon.png. Regenerate embedded PNG/ICO and published exe.
+- [x] Centering changes build/publish without warnings/errors; close/reopen/Escape and final exe-only smoke/restoration pass.
+- [ ] Owner may replace Ko-fi with a broader provider; Buy Me a Coffee recommended for cards/wallets. Await a real replacement page URL before changing the configured destination.
+- [x] User explicitly authorizes committing the support sidebar, links, branding and optical-centering fixes locally; never push. External destination checks remain listed above.
 
 ## Design experiment
 - [x] Create and switch to `new-design` from verified Phase 3.

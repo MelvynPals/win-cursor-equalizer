@@ -1,9 +1,6 @@
-using System.Drawing.Drawing2D;
-using System.Drawing.Imaging;
-
 namespace CursorEqualizer;
 
-internal sealed class MainForm : Form
+internal sealed partial class MainForm : Form
 {
     private static readonly Color Background = DesignPalette.Ground;
     private static readonly Color Surface = DesignPalette.Surface;
@@ -49,7 +46,8 @@ internal sealed class MainForm : Form
         StartPosition = FormStartPosition.CenterScreen;
         appIcon = CreateAppIcon();
         Icon = appIcon;
-        brandImage = appIcon.ToBitmap();
+        using (var stream = typeof(MainForm).Assembly.GetManifestResourceStream("CursorEqualizer.AppLogo")!)
+        using (var image = Image.FromStream(stream)) brandImage = new Bitmap(image);
 
         var header = new Panel { Dock = DockStyle.Top, Width = ClientSize.Width, Height = 142, Padding = new Padding(22) };
         header.Controls.Add(new PictureBox { Image = brandImage, SizeMode = PictureBoxSizeMode.Zoom, Bounds = new Rectangle(22, 19, 26, 26), TabStop = false });
@@ -83,19 +81,24 @@ internal sealed class MainForm : Form
         var footer = new TableLayoutPanel
         {
             Dock = DockStyle.Bottom, Height = 64, Padding = new Padding(22, 10, 22, 16),
-            ColumnCount = 2, RowCount = 1, BackColor = Background
+            ColumnCount = 3, RowCount = 1, BackColor = Background
         };
         footer.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        footer.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 146));
         footer.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 130));
         status = new Label { Text = "All changes saved", ForeColor = Muted, Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft, AutoEllipsis = true };
         var hideButton = MakeButton("Hide to tray", (_, _) => Hide());
+        supportToggle = MakeButton("Support & about", (_, _) => SetSupportOpen(!supportOpen));
+        supportToggle.AccessibleName = "Open support sidebar";
         footer.Controls.Add(status, 0, 0);
-        footer.Controls.Add(hideButton, 1, 0);
+        footer.Controls.Add(supportToggle, 1, 0);
+        footer.Controls.Add(hideButton, 2, 0);
         content = new Panel { Size = ClientSize, BackColor = Background };
         content.Controls.Add(cards);
         content.Controls.Add(footer);
         content.Controls.Add(header);
         Controls.Add(content);
+        CreateSupportSidebar();
         SizeChanged += (_, _) => LayoutContent();
 
         trayMenu = new ContextMenuStrip
@@ -170,7 +173,16 @@ internal sealed class MainForm : Form
             }
         };
         Shown += (_, _) => { LayoutContent(); RebuildCards(); FitToDisplay(); };
-        DpiChanged += (_, _) => BeginInvoke(new Action(() => { FitToDisplay(); LayoutContent(); RebuildCards(); }));
+        DpiChanged += (_, _) => BeginInvoke(new Action(() =>
+        {
+            FitToDisplay();
+            LayoutContent();
+            RebuildCards();
+            // Recreate scroll state after WinForms has scaled child bounds and styles.
+            // Otherwise a stale horizontal bar can survive the DPI transition.
+            ResetScrollLayout(cards);
+            ResetScrollLayout(supportBody);
+        }));
         ResumeLayout(true);
     }
 
@@ -206,8 +218,30 @@ internal sealed class MainForm : Form
 
     private void LayoutContent()
     {
-        int width = Math.Min(ClientSize.Width, (int)Math.Round(960 * DeviceDpi / 96.0));
-        content.Bounds = new Rectangle((ClientSize.Width - width) / 2, 0, width, ClientSize.Height);
+        int Px(int value) => (int)Math.Round(value * DeviceDpi / 96.0);
+        bool docked = supportOpen && ClientSize.Width >= Px(1040);
+        int combined = Math.Min(ClientSize.Width, Px(docked ? 1284 : 960));
+        int left = (ClientSize.Width - combined) / 2;
+        int sidebarWidth = Math.Min(Px(300), ClientSize.Width - Px(32));
+        int contentWidth = docked ? combined - sidebarWidth - Px(24) : combined;
+        content.Bounds = new Rectangle(left, 0, contentWidth, ClientSize.Height);
+        if (supportOpen)
+        {
+            supportSidebar.Bounds = new Rectangle(docked ? left + contentWidth + Px(24) : ClientSize.Width - sidebarWidth - Px(16),
+                Px(16), sidebarWidth, Math.Max(Px(80), ClientSize.Height - Px(32)));
+            supportSidebar.BringToFront();
+        }
+    }
+
+    private static void ResetScrollLayout(FlowLayoutPanel panel)
+    {
+        int verticalPosition = Math.Abs(panel.AutoScrollPosition.Y);
+        panel.SuspendLayout();
+        panel.AutoScroll = false;
+        panel.AutoScroll = true;
+        panel.ResumeLayout(true);
+        panel.PerformLayout();
+        panel.AutoScrollPosition = new Point(0, verticalPosition);
     }
 
     private void OnMonitorsChanged(object? sender, EventArgs e)
@@ -493,29 +527,8 @@ internal sealed class MainForm : Form
 
     private static Icon CreateAppIcon()
     {
-        using var bitmap = new Bitmap(64, 64);
-        using (var graphics = Graphics.FromImage(bitmap))
-        {
-            graphics.SmoothingMode = SmoothingMode.AntiAlias;
-            using var background = new SolidBrush(Background);
-            using var accent = new SolidBrush(Accent);
-            graphics.FillEllipse(background, 1, 1, 62, 62);
-            graphics.FillRectangle(accent, 17, 27, 7, 22);
-            graphics.FillRectangle(accent, 29, 15, 7, 34);
-            graphics.FillRectangle(accent, 41, 22, 7, 27);
-        }
-        using var png = new MemoryStream();
-        bitmap.Save(png, ImageFormat.Png);
-        using var ico = new MemoryStream();
-        using (var writer = new BinaryWriter(ico, System.Text.Encoding.UTF8, leaveOpen: true))
-        {
-            writer.Write((ushort)0); writer.Write((ushort)1); writer.Write((ushort)1);
-            writer.Write((byte)64); writer.Write((byte)64); writer.Write((byte)0); writer.Write((byte)0);
-            writer.Write((ushort)1); writer.Write((ushort)32);
-            writer.Write((uint)png.Length); writer.Write((uint)22); writer.Write(png.ToArray());
-        }
-        ico.Position = 0;
-        using var loaded = new Icon(ico);
+        using var stream = typeof(MainForm).Assembly.GetManifestResourceStream("CursorEqualizer.AppIcon")!;
+        using var loaded = new Icon(stream, new Size(64, 64));
         return (Icon)loaded.Clone();
     }
 

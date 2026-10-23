@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <!-- Classic Windows 11 rounded arrow cursor path -->
+    <path id="cursor-shape" d="M 260 140 
+             L 260 770 
+             L 415 620 
+             L 535 860 
+             L 645 805 
+             L 525 565 
+             L 745 535 
+             Z" stroke-linejoin="round" stroke-linecap="round" />
+          
+    <!-- Clip path so the equalizer bars fill the inside cleanly -->
+    <clipPath id="cursor-clip">
+      <use href="#cursor-shape" />
+    </clipPath>
+  </defs>
+
+  <!-- Ground (#000000) Background -->
+  <rect width="1024" height="1024" fill="#000000" />
+
+  <!-- Optical correction: the long left stem carries more visual weight. -->
+  <g transform="translate(64 -16)">
+  <!-- Surface (#111111) Cursor Interior -->
+  <use href="#cursor-shape" fill="#111111" />
+
+  <!-- Accent (#4CB3F0) 5-Bar Equalizer Inside the Cursor -->
+  <g clip-path="url(#cursor-clip)" fill="#4CB3F0">
+    <!-- Bar 1 (Left) -->
+    <rect x="275" y="470" width="70" height="420" rx="6" />
+    <!-- Bar 2 (Tall Center-Left) -->
+    <rect x="365" y="310" width="70" height="580" rx="6" />
+    <!-- Bar 3 (Center) -->
+    <rect x="455" y="250" width="70" height="640" rx="6" />
+    <!-- Bar 4 (Center-Right, split once like design #2) -->
+    <rect x="545" y="340" width="70" height="90" rx="6" />
+    <rect x="545" y="450" width="70" height="440" rx="6" />
+    <!-- Bar 5 (Right Tip) -->
+    <rect x="635" y="430" width="95" height="460" rx="6" />
+  </g>
+
+  <!-- Inner dark margin + Ink (#FFFFFF) Outer Border -->
+  <use href="#cursor-shape" fill="none" stroke="#111111" stroke-width="56" />
+  <use href="#cursor-shape" fill="none" stroke="#FFFFFF" stroke-width="32" />
+  </g>
+</svg>

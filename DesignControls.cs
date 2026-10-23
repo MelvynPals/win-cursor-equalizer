@@ -42,6 +42,7 @@ internal sealed class SettingsSurface : Panel
 internal sealed class DesignButton : Button
 {
     internal bool Primary { get; set; }
+    internal bool DrawCloseGlyph { get; set; }
     private bool hovered;
     private bool pressed;
     internal DesignButton()
@@ -72,9 +73,23 @@ internal sealed class DesignButton : Button
             using var pen = new Pen(DesignPalette.Accent, Math.Max(1, DeviceDpi / 96f));
             e.Graphics.DrawPath(pen, path);
         }
+        if (DrawCloseGlyph)
+        {
+            // A symmetric glyph has no font bearings or baseline offset.
+            float scale = DeviceDpi / 96f;
+            float centerX = Width / 2f, centerY = Height / 2f;
+            float radius = 3.5f * scale;
+            using var stroke = new Pen(Enabled ? DesignPalette.Ink : DesignPalette.Muted, 1.5f * scale)
+            {
+                StartCap = LineCap.Round, EndCap = LineCap.Round
+            };
+            e.Graphics.DrawLine(stroke, centerX - radius, centerY - radius, centerX + radius, centerY + radius);
+            e.Graphics.DrawLine(stroke, centerX - radius, centerY + radius, centerX + radius, centerY - radius);
+            return;
+        }
         TextRenderer.DrawText(e.Graphics, Text, Font, ClientRectangle,
             !Enabled ? DesignPalette.Muted : Primary ? Color.Black : DesignPalette.Ink,
-            TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
+            TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix);
     }
 }
 

@@ -6,6 +6,10 @@ Phase 3 is implemented as a .NET 8 (`net8.0-windows`, WinForms, WinExe) tray uti
 - `Program.cs`: first-call Per Monitor V2 DPI awareness, startup-configuration helper dispatch before the mutex/engine, session-local single-instance mutex, exit/crash/session hooks.
 - `TrayAppContext.cs`: WinForms message loop, 15 ms UI-thread poll timer, display-event subscription, GUI lifecycle and cleanup.
 - `MainForm.cs`: dark calibration window, per-monitor controls, tray icon/menu, autosave feedback. No P/Invoke calls or interop imports.
+- `MainForm.Support.cs`: partial MainForm for the closable support/about drawer, creator credit and outbound actions.
+- `ProjectLinks.cs`: maintainer name and HTTPS destinations; opens the default browser only after a user clicks.
+- `Assets/AppIcon.ico`, `Assets/AppLogo.png`: embedded branding and executable icon, derived from references/icon.svg.
+- `tools/Export-Icon.ps1`: optional developer SVG-to-PNG/ICO export using an isolated headless Edge profile and System.Drawing; not a runtime dependency.
 - `DesignControls.cs`: shared visual palette, rounded setting surfaces, painted buttons, a fully painted mouse/keyboard slider, and native radio-button mode selector.
 - `ConsoleApp.cs`: explicit diagnostic/configuration options and console polling mode, retained for testing/recovery.
 - `NativeMethods.cs`: all user32.dll, shcore.dll, gdi32.dll, and dwmapi.dll declarations, constants, and structures.
@@ -57,6 +61,39 @@ The entire settings content (header, monitor rows, footer) is centered and cappe
 Additional comparison captures: [maximized](design-responsive-wide.png), [narrow stacked](design-responsive-narrow.png), [after repeated dragging](design-slider-drag.png). The drag capture intentionally shows a temporary 72 px target; the saved setup was restored to D1=32@120 and D2=23@192 afterward.
 
 Verification of the corrected implementation: final build zero warnings/errors; all 29 engine/settings checks pass; final GUI smoke exits 0 and logs registry restoration. Actual pointer dragging at 125% crossed multiple positions and saved midpoint=72 px, then keyboard restored the exact original JSON. At 200%, pointer capture outside both ends saved 16 and 128 px, midpoint saved 72 px, and keyboard restored the exact original JSON. Native screenshots were inspected for maximized, narrow, standard, and 200% layouts. The original keyboard-only test did not detect the mouse defect; this verification includes real mouse input. The user subsequently requested the local commit. Remaining physical interaction checks are retained in TODO.md without being marked as tested.
+
+## Support sidebar and application branding
+The user requested this feature after Phase 4 and supplied references/icon.svg. The same true-black-flat direction (seed 1165514722), Segoe UI and existing palette are retained. The supplied cursor/equalizer artwork is the product identity; the supplied original is preserved as references/icon-original.svg and the final optically centered source is references/icon.svg. No new runtime packages or backend services are added.
+
+Support & about in the footer opens a right-side drawer. At a client width of 1040 logical pixels or more it docks next to calibration; the combined frame is capped at 1284 = 960 + 24 + 300 logical pixels. Below that width, the 300px drawer overlays the existing calibration content with 16px outer insets. Close and Escape dismiss it and restore focus to its opener. Tab/Shift+Tab stay inside the narrow overlay; the wide layout retains normal navigation through both regions. The drawer is closed at startup and uses vertical scrolling on short work areas. Opening/closing does not alter calibration or startup registration.
+
+The drawer shows the logo, Built by MelvynPals linking to https://github.com/MelvynPals, Buy me a coffee linking to the supplied https://ko-fi.com/emjay0303, and Send feedback opening this repository's GitHub issue composer with a generic issue/suggestion template. It does not collect/send diagnostics or submit an issue automatically. GitHub sign-in is identified in the UI. Resend is not used because the owner chose GitHub issues; no API key is embedded. The owner confirms they will make the repository public. Its public API currently returns 404, so public-user feedback access must be rechecked before distribution. Automated Ko-fi fetches returned 403; the actual destination is supplied by the owner and still needs a normal-browser check. No donation or feedback message was submitted during testing.
+
+Brand assets are embedded as CursorEqualizer.AppIcon and CursorEqualizer.AppLogo. ApplicationIcon also compiles Assets/AppIcon.ico into the executable's Windows icon resources. The ICO includes 16, 20, 24, 32, 40, 48, 64, 128 and 256px PNG frames. The header, tray and form use this same artwork. Resources load from assembly streams and work in a single-file copy without Assets or references beside it. To regenerate after editing the SVG:
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/Export-Icon.ps1
+```
+The export uses a fresh .local Edge profile, saves a 1024px references/icon.png beside the final SVG, and resamples it into the embedded PNG and ICO frames. Generated assets are committed, so building/running the app does not require Edge or this script.
+
+| Before | After | Why |
+| --- | --- | --- |
+| Generated equalizer bars | Supplied cursor/equalizer logo | Consistent app and executable branding |
+| No support destination | Closable responsive drawer | Keep calibration central and support discoverable |
+| No maintainer actions | Ko-fi donation, GitHub feedback and profile credit | Explicit destinations chosen by the owner |
+
+Verification: build and single-file publish succeed with zero warnings/errors; 46 existing engine/settings/startup checks pass. Native screenshots at 125%, maximized, narrow and 200% are saved as support-sidebar-normal.png, support-sidebar-wide.png, support-sidebar-narrow.png and support-sidebar-200.png. Close/reopen, Escape, focus restoration and the four-action Tab cycle pass. Pause/Resume still works. A discovered DPI-transition overflow was fixed by resetting WinForms scroll state after scaling and wrapping the identity caption; native style inspection confirms no horizontal scroll containers at 200% or narrow size. The final exe-only GUI smoke exits 0 and logs registry cursor restoration, normal published menu exit returns 0, the real executable icon extracts correctly, and the source ICO has nine resolutions. Current single-file output is 347,268 bytes. The user explicitly authorized committing the support sidebar, branding and centering changes locally.
+
+The browser-only Taste inspector cannot inspect WinForms; verification uses native UI Automation, screenshots and window styles. No browser audit pass is claimed. No placeholder payment destination, sample account or submitted feedback is shipped. The user authorized the current implementation commit. Public feedback access and normal-browser payment-destination checks remain explicit release checks in TODO.md.
+
+## Optical icon corrections and donation alternatives
+The owner reported that the close glyph sat off center and the cursor logo looked left-heavy. The close button now draws two symmetric rounded strokes about the circle center, independent of font metrics. Its accessible name, focus ring, click and Escape behavior are unchanged. Actual captures at 125% and 200% put the white-stroke center within 0.1px of the button's visual center.
+
+The cursor's long left stem concentrates its visible weight left of the bounding-box center. The final SVG applies translate(64 -16) to the artwork while retaining the full black canvas. As an optical aid, the 256px export's luminance-weighted visible centroid moves from approximately (110.96,132.48) to (126.97,128.47), followed by visual inspection. This deliberately changes geometric margins to balance perceived weight. Original: references/icon-original.svg. Final deliverables: references/icon.svg and references/icon.png (1024 x 1024). Assets/AppLogo.png and Assets/AppIcon.ico are regenerated from the final SVG and embedded into the rebuilt/published exe.
+
+Verification: build and single-file publish succeed without warnings/errors. Native close-button captures at both display scales and close/reopen/Escape focus restoration pass. Normal published exit logs restoration; a final exe-only GUI smoke exits 0 and logs registry cursor restoration. The user subsequently authorized the local commit after reviewing the centering changes. The existing 46 engine checks passed during the sidebar feature; no engine or settings behavior was changed by this visual correction.
+
+The owner reports their Ko-fi checkout only offers PayPal and asks for broader options. Buy Me a Coffee is recommended for major cards, Apple Pay and Google Pay in supported regions, with one-time support requiring no donor account; its platform fee is 5% plus processing fees. Its payout-country list includes the Philippines. For GCash/Maya, PayMongo's reusable Payment Pages are another option. The configured Ko-fi destination is retained until the owner supplies an actual replacement page URL. No payment account or transaction was created.
+Sources: [Buy Me a Coffee payment methods](https://help.buymeacoffee.com/en/articles/10182730-what-is-buy-me-a-coffee-and-how-does-it-work), [payout countries](https://help.buymeacoffee.com/en/articles/6258038-supported-countries-for-payouts-on-buy-me-a-coffee), [PayMongo Payment Pages](https://www.paymongo.com/products/accept-payments/payment-pages).
 
 ## Settings and identity
 JSON version 1 contains `BasePixels` (16-128, default 32) and `Monitors`, a case-insensitive dictionary keyed by monitor device interface ID. Each entry has `Mode` (`Auto`, `Manual`, or `Calibrated`), nullable `DiagonalInches` (>0 to 200), `ManualPixels` (16-128), `CalibrationPixels` (16-128), and nullable positive `CalibrationDpi`. Calibrated mode requires a reference DPI. Existing Auto/Manual settings without the new fields continue to load.
