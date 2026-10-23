@@ -12,7 +12,7 @@ Phase 3 is implemented as a .NET 8 (`net8.0-windows`, WinForms, WinExe) tray uti
 - `Assets/AppIcon.ico`, `Assets/AppLogo.png`: embedded branding and executable icon, derived from references/icon.svg.
 - `tools/Export-Icon.ps1`: optional developer SVG-to-PNG/ICO export using an isolated headless Edge profile and System.Drawing; not a runtime dependency.
 - `DesignControls.cs`: shared visual palette, rounded setting surfaces, painted buttons, a fully painted mouse/keyboard slider, and native radio-button mode selector.
-- `DesignScrollBar.cs`: dark rounded scrollbar with mouse capture, track paging, wheel and keyboard input for the support drawer.
+- `DesignScrollBar.cs`: shared dark rounded scrollbar with mouse capture, track paging, wheel and keyboard input for the support drawer and main calibration area.
 - `ConsoleApp.cs`: explicit diagnostic/configuration options and console polling mode, retained for testing/recovery.
 - `NativeMethods.cs`: all user32.dll, shcore.dll, gdi32.dll, and dwmapi.dll declarations, constants, and structures.
 - `CursorManager.cs`: monitor identities/DPI, registry cursor sources, sizing math, refresh requests, transition-only cursor replacement, restoration.
@@ -114,6 +114,11 @@ The owner requested a darker scrollbar aligned to the close icon and explicitly 
 | Native chrome reappeared during 200% transition | Refit viewport and scrollbar width after layout/DPI changes | Keep clipping correct across monitors |
 
 Verification: clean build and single-file publish have zero warnings/errors. Actual mouse thumb dragging and keyboard End/Home move content and return it to the original position; wheel input was exercised. Native captures references/support-scrollbar.png and references/support-scrollbar-200.png were inspected after moving between 125% and 200% displays. Accessibility-name lookup was unreliable, so input checks used actual mouse and keyboard events. The calibration engine, persistence and startup registration are unchanged.
+
+## Main calibration scrollbar
+The main calibration area reuses DesignScrollBar with the same dark rail, rounded thumb, hover/drag feedback and focus outline as the sidebar. MainForm places the native FlowLayoutPanel inside a clipped viewport and reserves a 32 logical px column for the custom scrollbar; header/footer remain fixed. SizeCards refits both the clipping bounds and scrollbar width for the current DPI and sizes monitor rows from the visible viewport width. Right card padding is provided by the scrollbar column. Native scrollbars are clipped beyond the viewport rather than painted over; no UI P/Invoke calls are introduced.
+
+Verification: dotnet build and release single-file publish pass with zero warnings/errors. The GUI smoke runs successfully and logs registry cursor restoration. Actual mouse dragging, wheel input and Home/End change the main content position and return it to the top. Native captures references/main-scrollbar.png and references/main-scrollbar-200.png were inspected at 125% and after moving to the 200% display, with no bright native scroll chrome. Calibration values and engine behavior are unchanged. The owner explicitly requested the local commit.
 
 ## Settings and identity
 JSON version 1 contains `BasePixels` (16-128, default 32) and `Monitors`, a case-insensitive dictionary keyed by monitor device interface ID. Each entry has `Mode` (`Auto`, `Manual`, or `Calibrated`), nullable `DiagonalInches` (>0 to 200), `ManualPixels` (16-128), `CalibrationPixels` (16-128), and nullable positive `CalibrationDpi`. Calibrated mode requires a reference DPI. Existing Auto/Manual settings without the new fields continue to load.

@@ -1,10 +1,11 @@
 ﻿# CursorEqualizer TODO
 
-Current work: PayPal/QR Ph support, primary Hide to tray styling and dark sidebar scrolling are built/published. The owner authorized committing these changes after requesting the scrollbar polish. Recipient scan and PayPal browser checks remain owner release checks below.
+Current work: main calibration scrolling now uses the same dark scrollbar as the support sidebar. Build/publish, GUI smoke/restoration, actual drag/wheel and Home/End checks pass; native 125%/200% captures are saved. Owner requested the local commit. Recipient scan and PayPal browser checks remain owner release checks below.
 
 ## Support sidebar and branding (authorized 2026-10-24)
 - [x] Style Hide to tray as a primary white/black button at user request; clean build/publish and native screenshot verified.
 - [x] Replace the sidebar's bright native scrollbar with a rounded dark rail/thumb aligned to the close-button centerline; retain native content wheel/focus scrolling and add drag, page click and keyboard input. Verify Home/End and real thumb dragging; exercise wheel input. Inspect 125% and 200% captures, including corrected DPI-transition clipping.
+- [x] Reuse the dark scrollbar for the main calibration area; clip native chrome using a DPI-fitted viewport, size monitor rows to the visible viewport and keep header/footer fixed. Build/publish zero warnings/errors; GUI smoke restores cursors. Actual drag, wheel and Home/End pass; inspect references/main-scrollbar.png and main-scrollbar-200.png.
 - [x] Confirm creator credit MelvynPals; choose Ko-fi for donations and GitHub issues for feedback.
 - [x] Render the supplied references/icon.svg and generate multi-resolution Assets/AppIcon.ico plus embedded AppLogo.png; add a repeatable export script.
 - [x] Embed the logo in the header, tray and window, and compile the icon into the executable.

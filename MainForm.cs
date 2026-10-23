@@ -10,6 +10,8 @@ internal sealed partial class MainForm : Form
     private readonly CursorManager manager;
     private readonly SettingsManager settings;
     private readonly FlowLayoutPanel cards;
+    private readonly Panel cardsViewport;
+    private readonly DesignScrollBar cardsScroll;
     private readonly Panel content;
     private readonly Label status;
     private readonly Button pauseButton;
@@ -72,9 +74,20 @@ internal sealed partial class MainForm : Form
 
         cards = new FlowLayoutPanel
         {
-            Dock = DockStyle.Fill, AutoScroll = true, FlowDirection = FlowDirection.TopDown,
-            WrapContents = false, Padding = new Padding(22, 4, 22, 8), BackColor = Background
+            AutoScroll = true, FlowDirection = FlowDirection.TopDown,
+            WrapContents = false, Padding = new Padding(22, 4, 0, 8), BackColor = Background
         };
+        cardsViewport = new Panel { Dock = DockStyle.Fill, BackColor = Background };
+        cardsScroll = new DesignScrollBar(cards)
+        {
+            Dock = DockStyle.Right, Width = 32, BackColor = Background,
+            AccessibleName = "Display calibration scroll"
+        };
+        cardsViewport.Controls.Add(cards);
+        var calibrationScroller = new Panel { Dock = DockStyle.Fill, BackColor = Background };
+        calibrationScroller.Controls.Add(cardsViewport);
+        calibrationScroller.Controls.Add(cardsScroll);
+        cardsViewport.SizeChanged += (_, _) => SizeCards();
         cards.SizeChanged += (_, _) => SizeCards();
         cards.Layout += (_, _) => SizeCards();
 
@@ -95,7 +108,7 @@ internal sealed partial class MainForm : Form
         footer.Controls.Add(supportToggle, 1, 0);
         footer.Controls.Add(hideButton, 2, 0);
         content = new Panel { Size = ClientSize, BackColor = Background };
-        content.Controls.Add(cards);
+        content.Controls.Add(calibrationScroller);
         content.Controls.Add(footer);
         content.Controls.Add(header);
         Controls.Add(content);
@@ -268,8 +281,11 @@ internal sealed partial class MainForm : Form
         sizingCards = true;
         try
         {
-            int width = Math.Max(100, cards.ClientSize.Width - cards.Padding.Horizontal -
-                (cards.VerticalScroll.Visible ? SystemInformation.VerticalScrollBarWidth : 0));
+            cardsScroll.Width = (int)Math.Round(32 * DeviceDpi / 96.0);
+            cards.Bounds = new Rectangle(0, 0,
+                cardsViewport.ClientSize.Width + (int)Math.Ceiling(SystemInformation.VerticalScrollBarWidth * DeviceDpi / 96.0),
+                cardsViewport.ClientSize.Height);
+            int width = Math.Max(100, cardsViewport.ClientSize.Width - cards.Padding.Horizontal);
             foreach (Control card in cards.Controls) card.Width = width;
         }
         finally { sizingCards = false; }
