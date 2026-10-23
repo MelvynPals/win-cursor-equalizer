@@ -22,7 +22,7 @@ internal sealed class AppSettings
     public Dictionary<string, MonitorSettings> Monitors { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 }
 
-internal sealed class SettingsManager
+internal sealed partial class SettingsManager
 {
     internal const string StartupRegistryPath = @"Software\Microsoft\Windows\CurrentVersion\Run";
     internal const string StartupValueName = "CursorEqualizer";

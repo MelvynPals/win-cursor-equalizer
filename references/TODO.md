@@ -1,6 +1,6 @@
 ﻿# CursorEqualizer TODO
 
-Current work: Phase 4 standard Windows startup is verified after the user restarted and confirmed it survived. Committing the milestone on the current branch, `main`; elevated startup and packaging remain next. Responsive UI redesign and slider fixes are committed as e6b63a1. Phase 3 is committed as 583896e; design preparation as 88ba364; Phase 2 as 33865de.
+Current work: Phase 4 elevated Task Scheduler startup is verified after restart: the user confirms it is active and working. Committing this milestone on `main`. Standard startup is verified after restart and committed as 4f55f22; single-file packaging has not started. Responsive UI redesign and slider fixes are committed as e6b63a1. Phase 3 is committed as 583896e; design preparation as 88ba364; Phase 2 as 33865de.
 
 ## Design experiment
 - [x] Create and switch to `new-design` from verified Phase 3.
@@ -20,8 +20,8 @@ Current work: Phase 4 standard Windows startup is verified after the user restar
 - [x] User authorizes committing the responsive redesign and slider fixes locally; never push.
 
 ## Next phase
-- Phase 4: standard Registry Run startup verified after restart; next are elevated Task Scheduler startup and single-file win-x64 packaging.
-- Phase 3 UI checks were confirmed; Phase 4 standard startup now has user-confirmed restart verification.
+- Phase 4: standard and elevated startup both verified after restart; single-file win-x64 packaging is next.
+- Phase 3 UI checks were confirmed; standard and elevated startup both have user-confirmed restart verification.
 - Continue regression checks for restart persistence, smaller-window scrolling, and physical hotplug as relevant.
 
 ## Remaining regression checks
@@ -80,7 +80,15 @@ Current work: Phase 4 standard Windows startup is verified after the user restar
 - [x] User restarted and confirmed the app survived (automatic startup works).
 - [ ] Separately verify post-restart tray Open Settings/Exit restoration and calibration details; these were not explicitly reported with the restart confirmation.
 - [x] Commit the verified standard-startup milestone locally; never push.
-- [ ] Elevated Task Scheduler startup option.
+- [x] Add Off / Standard / Elevated (administrator) options in the shared startup menu.
+- [x] SettingsManager partial startup implementation: same-user SID task, interactive highest privileges, --minimized, explicit working directory, battery support, unlimited runtime and no scheduler hard termination.
+- [x] Separate runas configuration helper before the app mutex/engine; keep the UI polling while waiting. Reject alternate-account elevation, handle UAC cancellation, and attempt rollback on configuration failure.
+- [x] Build zero warnings/errors; 46 focused tests pass; GUI smoke exits 0 and restores cursors.
+- [x] Real UAC-backed UI test: Standard -> Elevated -> Standard -> Elevated. Verify enabled task/current-user identity/highest interactive privileges and remove the duplicate Run entry; restoring Standard deletes the task and restores Run.
+- [x] User restarted with elevated startup enabled and confirmed the app is active and working.
+- [ ] Separately confirm the process token in Task Manager and post-restart tray Exit restoration; these details were not explicitly reported.
+- [ ] Exercise UAC cancellation/failure rollback explicitly; these paths are implemented but were not forced in this run.
+- [x] Commit the elevated-startup milestone after user verification; never push.
 - [ ] Publish and verify single-file win-x64 executable.
 
 ## Open checks

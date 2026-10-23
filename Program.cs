@@ -14,6 +14,16 @@ internal static class Program
             return 1;
         }
 
+        if (args.FirstOrDefault() == "--configure-startup")
+        {
+            try { SettingsManager.ConfigureStartup(args); return 0; }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "CursorEqualizer startup configuration", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return 1;
+            }
+        }
+
         bool graphical = args.Length == 0 || args.Contains("--minimized") || args.Contains("--ui-smoke-test");
         using var instance = new Mutex(true, @"Local\CursorEqualizer", out bool ownsInstance);
         if (!ownsInstance)

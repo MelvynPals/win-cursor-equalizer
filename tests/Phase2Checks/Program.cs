@@ -84,4 +84,21 @@ foreach (string badPath in new[] { "", "CursorEqualizer.exe", @"C:\dotnet.exe", 
     catch (ArgumentException) { rejected = true; }
     Check(rejected, "Reject unsafe or unsupported startup path");
 }
-Console.WriteLine($"PASS: {checks} sizing, persistence, identity, validation, preservation, and startup-command checks.");
+var taskDocument = System.Xml.Linq.XDocument.Parse(SettingsManager.BuildElevatedStartupXml(
+    @"C:\My Apps & Tools\CursorEqualizer.exe", "S-1-5-21-1-2-3-1001"));
+System.Xml.Linq.XNamespace taskNs = "http://schemas.microsoft.com/windows/2004/02/mit/task";
+string? TaskValue(string name) => taskDocument.Descendants(taskNs + name).FirstOrDefault()?.Value;
+Check(TaskValue("Command") == @"C:\My Apps & Tools\CursorEqualizer.exe", "Task command XML safely escapes ampersands and preserves spaces");
+Check(TaskValue("Arguments") == "--minimized" && TaskValue("WorkingDirectory") == @"C:\My Apps & Tools", "Task action uses minimized mode and explicit working directory");
+Check(TaskValue("LogonType") == "InteractiveToken" && TaskValue("RunLevel") == "HighestAvailable", "Task is interactive and elevated without storing passwords");
+Check(taskDocument.Descendants(taskNs + "UserId").Count() == 2 &&
+    taskDocument.Descendants(taskNs + "UserId").All(e => e.Value == "S-1-5-21-1-2-3-1001"), "Task principal and logon trigger use the same user SID");
+Check(TaskValue("DisallowStartIfOnBatteries") == "false" && TaskValue("StopIfGoingOnBatteries") == "false", "Laptop battery does not prevent or stop startup");
+Check(TaskValue("ExecutionTimeLimit") == "PT0S" && TaskValue("AllowHardTerminate") == "false", "Task does not time out or hard-terminate cursor engine");
+Check(TaskValue("MultipleInstancesPolicy") == "IgnoreNew", "Task ignores duplicate launches");
+Check(SettingsManager.StartupTaskName("S-1-5-21-1-2-3-1001") == "CursorEqualizer-S-1-5-21-1-2-3-1001", "Task names are isolated by user");
+bool invalidSidRejected = false;
+try { SettingsManager.BuildElevatedStartupXml(@"C:\CursorEqualizer.exe", "not-a-sid"); }
+catch (ArgumentException) { invalidSidRejected = true; }
+Check(invalidSidRejected, "Reject invalid task user identity");
+Console.WriteLine($"PASS: {checks} sizing, persistence, identity, validation, preservation, and startup checks.");

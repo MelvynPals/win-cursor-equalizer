@@ -1,9 +1,9 @@
 ﻿# CursorEqualizer Documentation
 
 ## Current scope and files
-Phase 3 is implemented as a .NET 8 (`net8.0-windows`, WinForms, WinExe) tray utility and the user confirmed its four requested UI/tray checks on 2026-10-23. Phase 2 calibrated sizing passed the user's 150%/200% visual comparison. The responsive redesign is committed as e6b63a1. Phase 4 standard Windows startup is implemented and the user confirmed it survived a restart; elevated startup and publishing remain pending.
+Phase 3 is implemented as a .NET 8 (`net8.0-windows`, WinForms, WinExe) tray utility and the user confirmed its four requested UI/tray checks on 2026-10-23. Phase 2 calibrated sizing passed the user's 150%/200% visual comparison. The responsive redesign is committed as e6b63a1. Phase 4 standard Windows startup is implemented and the user confirmed it survived a restart; elevated startup also has user-confirmed restart verification, while publishing remains pending.
 
-- `Program.cs`: first-call Per Monitor V2 DPI awareness, session-local single-instance mutex, exit/crash/session hooks.
+- `Program.cs`: first-call Per Monitor V2 DPI awareness, startup-configuration helper dispatch before the mutex/engine, session-local single-instance mutex, exit/crash/session hooks.
 - `TrayAppContext.cs`: WinForms message loop, 15 ms UI-thread poll timer, display-event subscription, GUI lifecycle and cleanup.
 - `MainForm.cs`: dark calibration window, per-monitor controls, tray icon/menu, autosave feedback. No P/Invoke calls or interop imports.
 - `DesignControls.cs`: shared visual palette, rounded setting surfaces, painted buttons, a fully painted mouse/keyboard slider, and native radio-button mode selector.
@@ -11,6 +11,7 @@ Phase 3 is implemented as a .NET 8 (`net8.0-windows`, WinForms, WinExe) tray uti
 - `NativeMethods.cs`: all user32.dll, shcore.dll, gdi32.dll, and dwmapi.dll declarations, constants, and structures.
 - `CursorManager.cs`: monitor identities/DPI, registry cursor sources, sizing math, refresh requests, transition-only cursor replacement, restoration.
 - `SettingsManager.cs`: validated JSON loading/atomic save in `%AppData%\CursorEqualizer\settings.json`, plus per-user Registry Run startup registration and command validation.
+- `SettingsManager.Startup.cs`: partial SettingsManager for startup modes, Task Scheduler COM/XML, UAC helper launch, same-account checks and rollback.
 - `tests/Phase2Checks/`: dependency-free focused sizing and settings checks.
 
 ## Design experiment setup
@@ -109,7 +110,7 @@ dotnet run -- --restore
 dotnet run -- --help
 dotnet run --project tests/Phase2Checks/Phase2Checks.csproj
 ```
-`dotnet run` opens the tray app and Settings window. `--minimized` starts only the tray icon. Enable automatic sign-in launch through Start with Windows in More actions or the tray menu. `--ui-smoke-test` opens the real UI, runs for two seconds, and exits through normal restoration/cleanup. Explicit configuration/diagnostic options retain the console host: without --list they save settings then run the engine. --smoke-test tests that console engine for two seconds and restores. Q, Escape, Ctrl+C, and R apply to the console host.
+`dotnet run` opens the tray app and Settings window. `--minimized` starts only the tray icon. Choose Off, Standard or Elevated (administrator) under Start with Windows in More actions or the tray menu. `--ui-smoke-test` opens the real UI, runs for two seconds, and exits through normal restoration/cleanup. Explicit configuration/diagnostic options retain the console host: without --list they save settings then run the engine. --smoke-test tests that console engine for two seconds and restores. Q, Escape, Ctrl+C, and R apply to the console host.
 
 ## Calibration UI and tray
 - Each card shows display name, resolution, Windows scaling, mode, diagonal inches, and a live 16-128 px slider. Cards refresh after display changes and use the window's current DPI for layout.
@@ -119,7 +120,7 @@ dotnet run --project tests/Phase2Checks/Phase2Checks.csproj
 - Closing Settings or clicking Hide to tray leaves the equalizer running. Double-click the tray icon, or right-click and select Open Settings, to reopen it. Windows may put the icon in the hidden-icons area.
 - Tray actions: Open Settings, Pause/Resume Equalizer, Reload Cursors from Registry, Exit & Restore Default Cursors. Pause is also available in Settings.
 - Exit stops timers, unsubscribes display events, flushes settings, restores registry cursors, closes the form, and disposes the tray icon. Startup failure and UI-thread error handlers also restore cursors.
-- Standard Windows startup is available in the shared menu; elevated startup and single-file publishing remain pending in Phase 4.
+- Standard and elevated Windows startup modes are available in the shared menu. Elevated startup has user-confirmed restart verification; single-file publishing remains pending in Phase 4.
 
 ## Phase 4: standard Windows startup
 The user authorized this step on 2026-10-24. More actions and the tray menu share a Start with Windows check item. SettingsManager writes only the `CursorEqualizer` REG_SZ value under `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`, using `"<full executable path>" --minimized`. Disabling deletes only that value; a missing key/value is harmless. The registry entry is the source of truth and is reread when opening the menu. Monitor JSON is unchanged, avoiding a conflicting startup flag.
@@ -130,7 +131,22 @@ For this development test the registered executable is the project's `bin\Debug\
 
 Verification: build zero warnings/errors; 37 focused checks (the original 29 plus startup command quoting and invalid-path cases). UI Automation enabled startup, verified the exact quoted command, disabled and verified removal, then enabled it for the user's sign-in test. The app exited normally and logged registry cursor restoration. Launching the registered executable with --minimized from TEMP stayed alive, kept Settings hidden, and logged successful cursor replacements. That initial check simulated the command. The user subsequently restarted Windows and confirmed the app survived, verifying automatic startup at sign-in. Startup remains enabled.
 
-User test: sign out and sign in again, or restart and sign in. Check for the CursorEqualizer tray icon (including hidden icons), with no Settings window opening automatically. Open Settings from the tray, confirm saved calibration and cross-monitor behavior, and verify tray Exit restores registry cursors. The user reported a successful restart test. Post-restart calibration details and tray exit restoration were not separately reported. No sign-out/restart was triggered automatically. The standard-startup milestone is being committed on the current branch, main; elevated startup and publishing remain pending.
+User test: sign out and sign in again, or restart and sign in. Check for the CursorEqualizer tray icon (including hidden icons), with no Settings window opening automatically. Open Settings from the tray, confirm saved calibration and cross-monitor behavior, and verify tray Exit restores registry cursors. The user reported a successful restart test. Post-restart calibration details and tray exit restoration were not separately reported. No sign-out/restart was triggered automatically. The standard-startup milestone is committed as 4f55f22 on main; elevated startup also has user-confirmed restart verification, while publishing remains pending.
+
+## Phase 4: elevated startup
+SettingsManager is split across SettingsManager.cs and SettingsManager.Startup.cs. The shared Start with Windows submenu offers Off, Standard, and Elevated (administrator), refreshing its checks from the actual task/registry state. Standard uses the existing per-user Run value. Elevated uses a Task Scheduler task named `CursorEqualizer-<current-user-SID>` and removes the Run value after registration succeeds. Switching to Standard restores Run and deletes the task; Off removes both. Task deletion changes future startup and does not stop a running app. Changing startup never changes the current process's privilege level.
+
+The task XML uses a logon trigger for that user, an InteractiveToken principal with HighestAvailable run level, and an Exec action with the raw executable path, --minimized argument, and explicit executable directory. XML construction escapes path content. The task runs on battery, does not stop on battery transition, ignores duplicate task instances, has ExecutionTimeLimit=PT0S, and disables scheduler hard termination. Existing app mutex and cursor restoration hooks remain active. No user password is stored. Task Scheduler COM objects are released explicitly; no new P/Invoke declarations or UI-native calls are introduced.
+
+Enabling or removing an elevated task invokes the executable through ShellExecute runas when the app is not already elevated. A background operation keeps the UI/engine timers running while Windows requests approval; repeated startup clicks are disabled until completion. Cancelling UAC leaves configuration unchanged. The helper command `--configure-startup <StartupMode> <original-user-SID>` runs before the single-instance mutex and cursor engine, validates its mode and identity, requires administrator privileges, changes startup, and exits. Alternate administrator credentials for a different account are rejected so another account's HKCU/task is never configured. Errors appear in the helper's error dialog and parent status. After mutation failures, the configuration code attempts to restore prior app Run/task state and reports rollback failure if restoration also fails.
+
+The menu check reads enabled-task existence first, then Run registration. Disabled tasks do not count as enabled elevated startup, but are removed when switching modes. Only the current account's app task and CursorEqualizer Run value are modified. Task Scheduler is queried through Schedule.Service; unavailable service/access errors are reported without stopping cursor polling.
+
+Verification: clean build zero warnings/errors, 46 focused checks, GUI smoke exits 0 with registry cursor restoration. Tests cover task path/XML escaping, explicit working directory, minimized arguments, matching principal/trigger SID, interactive highest privileges, battery behavior, unlimited lifetime, no hard termination and duplicate-instance policy. Real UI/UAC testing switched Standard -> Elevated -> Standard -> Elevated. Task Scheduler confirmed the enabled task, same-user principal, InteractiveToken/HighestAvailable, and no Run duplicate. Returning to Standard deleted the task and restored the quoted Run command. The user subsequently restarted with elevated mode enabled and confirmed the app is active and working, verifying startup through this configuration. The process token was not separately reported from Task Manager. UAC cancellation and injected mutation/rollback failure were not exercised and remain separate checks.
+
+Restart test: restart/sign in, check for one tray icon and no automatic Settings window, open Settings, test calibration, then exit through the tray to restore registry cursors. Task Manager's Details view can show the Elevated column to confirm the new process is elevated. The user confirmed the restart test succeeded; the elevated-startup milestone is being committed. Post-restart tray Exit restoration and a separate token inspection remain explicit regression checks. Packaging is next.
+
+Task Scheduler references: [security contexts and highest privileges](https://learn.microsoft.com/en-us/windows/win32/taskschd/security-contexts-for-running-tasks), [Task Scheduler XML schema](https://learn.microsoft.com/en-us/windows/win32/taskschd/task-scheduler-schema), [task settings](https://learn.microsoft.com/en-us/windows/win32/taskschd/tasksettings).
 
 ## Phase 3 live test
 1. The Settings window is launched for review. Inspect both display cards and move the window between 125% and 200% displays to check readability, resizing, and scrolling.

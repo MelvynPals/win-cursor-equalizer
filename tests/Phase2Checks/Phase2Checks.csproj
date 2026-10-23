@@ -10,6 +10,7 @@
   <ItemGroup>
     <Compile Include="Program.cs" />
     <Compile Include="../../SettingsManager.cs" />
+    <Compile Include="../../SettingsManager.Startup.cs" />
     <Compile Include="../../CursorManager.cs" />
     <Compile Include="../../NativeMethods.cs" />
   </ItemGroup>

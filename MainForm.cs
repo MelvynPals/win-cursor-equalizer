@@ -111,20 +111,48 @@ internal sealed class MainForm : Form
             manager.ReloadCursors();
             SetStatus("Cursor scheme reloaded", false);
         }));
-        var startupItem = new ToolStripMenuItem("Start with Windows")
+        var startupItem = new ToolStripMenuItem("Start with Windows");
+        var startupChoices = new Dictionary<StartupMode, ToolStripMenuItem>();
+        bool configuringStartup = false;
+        void RefreshStartup()
         {
-            ToolTipText = "Launch minimized to the tray when you sign in to Windows."
-        };
+            var current = settings.GetStartupMode();
+            startupItem.Checked = current != StartupMode.Disabled;
+            foreach (var (mode, item) in startupChoices) item.Checked = mode == current;
+        }
+        foreach (var mode in Enum.GetValues<StartupMode>())
+        {
+            var choice = new ToolStripMenuItem(mode switch
+            {
+                StartupMode.Disabled => "Off", StartupMode.Standard => "Standard", _ => "Elevated (administrator)"
+            });
+            choice.ToolTipText = mode == StartupMode.Elevated
+                ? "Starts in the tray with administrator privileges at sign-in. Windows will request approval."
+                : "Applies at the next Windows sign-in.";
+            startupChoices.Add(mode, choice);
+            startupItem.DropDownItems.Add(choice);
+            choice.Click += async (_, _) =>
+            {
+                if (configuringStartup) return;
+                configuringStartup = true;
+                startupItem.Enabled = false;
+                SetStatus("Updating Windows startup...", false);
+                try
+                {
+                    bool changed = await settings.SetStartupModeAsync(mode);
+                    if (IsDisposed) return;
+                    RefreshStartup();
+                    SetStatus(!changed ? "Startup unchanged. Administrator approval was cancelled."
+                        : mode == StartupMode.Disabled ? "Windows startup disabled."
+                        : $"{mode} startup enabled. Applies at the next Windows sign-in.", false);
+                }
+                catch (Exception ex) { if (!IsDisposed) RunAction(() => throw ex); }
+                finally { configuringStartup = false; if (!IsDisposed) startupItem.Enabled = true; }
+            };
+        }
         trayMenu.Items.Add(new ToolStripSeparator());
         trayMenu.Items.Add(startupItem);
-        trayMenu.Opening += (_, _) => RunAction(() => startupItem.Checked = settings.GetStartupCommand() is not null);
-        startupItem.Click += (_, _) => RunAction(() =>
-        {
-            bool enabled = settings.GetStartupCommand() is null;
-            settings.SetStartWithWindows(enabled);
-            startupItem.Checked = settings.GetStartupCommand() is not null;
-            SetStatus(enabled ? "Windows startup enabled. Starts in the tray at sign-in." : "Windows startup disabled.", false);
-        });
+        trayMenu.Opening += (_, _) => RunAction(RefreshStartup);
         trayMenu.Items.Add(new ToolStripSeparator());
         trayMenu.Items.Add("Exit & Restore Default Cursors", null, (_, _) => ExitRequested?.Invoke(this, EventArgs.Empty));
         moreButton.Click += (_, _) => trayMenu.Show(moreButton, new Point(0, moreButton.Height));
