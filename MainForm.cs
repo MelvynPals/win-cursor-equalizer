@@ -111,6 +111,20 @@ internal sealed class MainForm : Form
             manager.ReloadCursors();
             SetStatus("Cursor scheme reloaded", false);
         }));
+        var startupItem = new ToolStripMenuItem("Start with Windows")
+        {
+            ToolTipText = "Launch minimized to the tray when you sign in to Windows."
+        };
+        trayMenu.Items.Add(new ToolStripSeparator());
+        trayMenu.Items.Add(startupItem);
+        trayMenu.Opening += (_, _) => RunAction(() => startupItem.Checked = settings.GetStartupCommand() is not null);
+        startupItem.Click += (_, _) => RunAction(() =>
+        {
+            bool enabled = settings.GetStartupCommand() is null;
+            settings.SetStartWithWindows(enabled);
+            startupItem.Checked = settings.GetStartupCommand() is not null;
+            SetStatus(enabled ? "Windows startup enabled. Starts in the tray at sign-in." : "Windows startup disabled.", false);
+        });
         trayMenu.Items.Add(new ToolStripSeparator());
         trayMenu.Items.Add("Exit & Restore Default Cursors", null, (_, _) => ExitRequested?.Invoke(this, EventArgs.Empty));
         moreButton.Click += (_, _) => trayMenu.Show(moreButton, new Point(0, moreButton.Height));

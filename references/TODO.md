@@ -1,6 +1,6 @@
 ﻿# CursorEqualizer TODO
 
-Current work: responsive UI redesign and slider fixes completed on `new-design`; user explicitly requested the local commit. Phase 3 was verified and committed as 583896e; design preparation is committed as 88ba364. Phase 4 has not started. Phase 2 is committed as 33865de.
+Current work: Phase 4 standard Windows startup is verified after the user restarted and confirmed it survived. Committing the milestone on the current branch, `main`; elevated startup and packaging remain next. Responsive UI redesign and slider fixes are committed as e6b63a1. Phase 3 is committed as 583896e; design preparation as 88ba364; Phase 2 as 33865de.
 
 ## Design experiment
 - [x] Create and switch to `new-design` from verified Phase 3.
@@ -20,8 +20,8 @@ Current work: responsive UI redesign and slider fixes completed on `new-design`;
 - [x] User authorizes committing the responsive redesign and slider fixes locally; never push.
 
 ## Next phase
-- Phase 4: standard Registry Run startup with --minimized, elevated Task Scheduler startup, and single-file win-x64 packaging.
-- Phase 3 UI checks were confirmed; Phase 4 implementation has not started.
+- Phase 4: standard Registry Run startup verified after restart; next are elevated Task Scheduler startup and single-file win-x64 packaging.
+- Phase 3 UI checks were confirmed; Phase 4 standard startup now has user-confirmed restart verification.
 - Continue regression checks for restart persistence, smaller-window scrolling, and physical hotplug as relevant.
 
 ## Remaining regression checks
@@ -70,8 +70,16 @@ Current work: responsive UI redesign and slider fixes completed on `new-design`;
 - [x] User verifies close-to-tray/reopen and tray reload/pause/resume/exit restoration.
 - [x] Commit verified Phase 3 locally at user's request; never push.
 
-## Phase 4 (next; not started)
-- [ ] Registry Run startup with --minimized.
+## Phase 4 (standard startup authorized 2026-10-24)
+- [x] SettingsManager owns per-user Registry Run registration; quote the executable path and append --minimized.
+- [x] Add Start with Windows to the shared tray/More actions menu, refreshing the check state from the registry.
+- [x] Validate executable path, reject host/DLL/relative/unsafe paths, and enforce the documented 260-character Run command limit.
+- [x] Build with zero warnings/errors; all 37 calibration, persistence and startup-command checks pass.
+- [x] Native UI enable/disable/re-enable verifies the exact Run value and removal; leave enabled for user verification.
+- [x] Exit normally with registry cursor restoration; launch the registered executable with --minimized from TEMP, verify process alive, Settings hidden, and cursor replacements active.
+- [x] User restarted and confirmed the app survived (automatic startup works).
+- [ ] Separately verify post-restart tray Open Settings/Exit restoration and calibration details; these were not explicitly reported with the restart confirmation.
+- [x] Commit the verified standard-startup milestone locally; never push.
 - [ ] Elevated Task Scheduler startup option.
 - [ ] Publish and verify single-file win-x64 executable.
 

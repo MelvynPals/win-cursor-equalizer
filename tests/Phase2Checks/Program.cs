@@ -74,4 +74,14 @@ foreach (string invalid in new[]
     Check(rejected && File.ReadAllText(file) == invalid, "Invalid settings rejected without overwriting: " + invalid);
 }
 File.WriteAllText(file, original);
-Console.WriteLine($"PASS: {checks} sizing, persistence, identity, validation, and preservation checks.");
+Check(SettingsManager.BuildStartupCommand(@"C:\My Apps\CursorEqualizer.exe") ==
+    "\"C:\\My Apps\\CursorEqualizer.exe\" --minimized", "Startup path with spaces is quoted and minimized");
+foreach (string badPath in new[] { "", "CursorEqualizer.exe", @"C:\dotnet.exe", @"C:\CursorEqualizer.dll",
+    "C:\\bad\"path.exe", "C:\\bad\npath.exe", "C:\\" + new string('a', 250) + ".exe" })
+{
+    bool rejected = false;
+    try { SettingsManager.BuildStartupCommand(badPath); }
+    catch (ArgumentException) { rejected = true; }
+    Check(rejected, "Reject unsafe or unsupported startup path");
+}
+Console.WriteLine($"PASS: {checks} sizing, persistence, identity, validation, preservation, and startup-command checks.");

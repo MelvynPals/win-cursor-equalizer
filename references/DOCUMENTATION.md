@@ -1,7 +1,7 @@
 ﻿# CursorEqualizer Documentation
 
 ## Current scope and files
-Phase 3 is implemented as a .NET 8 (`net8.0-windows`, WinForms, WinExe) tray utility and the user confirmed its four requested UI/tray checks on 2026-10-23. Phase 2 calibrated sizing passed the user's 150%/200% visual comparison. Phase 4 startup/publishing is next and has not started.
+Phase 3 is implemented as a .NET 8 (`net8.0-windows`, WinForms, WinExe) tray utility and the user confirmed its four requested UI/tray checks on 2026-10-23. Phase 2 calibrated sizing passed the user's 150%/200% visual comparison. The responsive redesign is committed as e6b63a1. Phase 4 standard Windows startup is implemented and the user confirmed it survived a restart; elevated startup and publishing remain pending.
 
 - `Program.cs`: first-call Per Monitor V2 DPI awareness, session-local single-instance mutex, exit/crash/session hooks.
 - `TrayAppContext.cs`: WinForms message loop, 15 ms UI-thread poll timer, display-event subscription, GUI lifecycle and cleanup.
@@ -10,7 +10,7 @@ Phase 3 is implemented as a .NET 8 (`net8.0-windows`, WinForms, WinExe) tray uti
 - `ConsoleApp.cs`: explicit diagnostic/configuration options and console polling mode, retained for testing/recovery.
 - `NativeMethods.cs`: all user32.dll, shcore.dll, gdi32.dll, and dwmapi.dll declarations, constants, and structures.
 - `CursorManager.cs`: monitor identities/DPI, registry cursor sources, sizing math, refresh requests, transition-only cursor replacement, restoration.
-- `SettingsManager.cs`: validated JSON loading and atomic save in `%AppData%\CursorEqualizer\settings.json`.
+- `SettingsManager.cs`: validated JSON loading/atomic save in `%AppData%\CursorEqualizer\settings.json`, plus per-user Registry Run startup registration and command validation.
 - `tests/Phase2Checks/`: dependency-free focused sizing and settings checks.
 
 ## Design experiment setup
@@ -109,7 +109,7 @@ dotnet run -- --restore
 dotnet run -- --help
 dotnet run --project tests/Phase2Checks/Phase2Checks.csproj
 ```
-`dotnet run` opens the tray app and Settings window. `--minimized` starts only the tray icon (no auto-start registration yet). `--ui-smoke-test` opens the real UI, runs for two seconds, and exits through normal restoration/cleanup. Explicit configuration/diagnostic options retain the console host: without --list they save settings then run the engine. --smoke-test tests that console engine for two seconds and restores. Q, Escape, Ctrl+C, and R apply to the console host.
+`dotnet run` opens the tray app and Settings window. `--minimized` starts only the tray icon. Enable automatic sign-in launch through Start with Windows in More actions or the tray menu. `--ui-smoke-test` opens the real UI, runs for two seconds, and exits through normal restoration/cleanup. Explicit configuration/diagnostic options retain the console host: without --list they save settings then run the engine. --smoke-test tests that console engine for two seconds and restores. Q, Escape, Ctrl+C, and R apply to the console host.
 
 ## Calibration UI and tray
 - Each card shows display name, resolution, Windows scaling, mode, diagonal inches, and a live 16-128 px slider. Cards refresh after display changes and use the window's current DPI for layout.
@@ -119,7 +119,18 @@ dotnet run --project tests/Phase2Checks/Phase2Checks.csproj
 - Closing Settings or clicking Hide to tray leaves the equalizer running. Double-click the tray icon, or right-click and select Open Settings, to reopen it. Windows may put the icon in the hidden-icons area.
 - Tray actions: Open Settings, Pause/Resume Equalizer, Reload Cursors from Registry, Exit & Restore Default Cursors. Pause is also available in Settings.
 - Exit stops timers, unsubscribes display events, flushes settings, restores registry cursors, closes the form, and disposes the tray icon. Startup failure and UI-thread error handlers also restore cursors.
-- Startup integration and single-file publishing remain Phase 4.
+- Standard Windows startup is available in the shared menu; elevated startup and single-file publishing remain pending in Phase 4.
+
+## Phase 4: standard Windows startup
+The user authorized this step on 2026-10-24. More actions and the tray menu share a Start with Windows check item. SettingsManager writes only the `CursorEqualizer` REG_SZ value under `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`, using `"<full executable path>" --minimized`. Disabling deletes only that value; a missing key/value is harmless. The registry entry is the source of truth and is reread when opening the menu. Monitor JSON is unchanged, avoiding a conflicting startup flag.
+
+The command uses Environment.ProcessPath, never the working directory, and validates an absolute .exe path with no embedded quotes/control characters. Running under dotnet.exe directly is rejected; use the apphost executable or dotnet run. Run commands over 260 characters are rejected before writing, per [Microsoft Run/RunOnce documentation](https://learn.microsoft.com/en-us/windows/win32/setupapi/run-and-runonce-registry-keys). This is per-user startup at sign-in and does not request administrator privileges. OS startup policies or a disabled Windows Startup apps entry can prevent launch; the menu check reflects Run registration.
+
+For this development test the registered executable is the project's `bin\Debug\net8.0-windows\CursorEqualizer.exe`. Keep its companion DLL/runtime files and the project location intact. If moving the app, disable startup before moving it and enable again from the new executable. Registration will be updated to the published executable when packaging is verified in a later step.
+
+Verification: build zero warnings/errors; 37 focused checks (the original 29 plus startup command quoting and invalid-path cases). UI Automation enabled startup, verified the exact quoted command, disabled and verified removal, then enabled it for the user's sign-in test. The app exited normally and logged registry cursor restoration. Launching the registered executable with --minimized from TEMP stayed alive, kept Settings hidden, and logged successful cursor replacements. That initial check simulated the command. The user subsequently restarted Windows and confirmed the app survived, verifying automatic startup at sign-in. Startup remains enabled.
+
+User test: sign out and sign in again, or restart and sign in. Check for the CursorEqualizer tray icon (including hidden icons), with no Settings window opening automatically. Open Settings from the tray, confirm saved calibration and cross-monitor behavior, and verify tray Exit restores registry cursors. The user reported a successful restart test. Post-restart calibration details and tray exit restoration were not separately reported. No sign-out/restart was triggered automatically. The standard-startup milestone is being committed on the current branch, main; elevated startup and publishing remain pending.
 
 ## Phase 3 live test
 1. The Settings window is launched for review. Inspect both display cards and move the window between 125% and 200% displays to check readability, resizing, and scrolling.

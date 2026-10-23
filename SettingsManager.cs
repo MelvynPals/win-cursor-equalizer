@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.Win32;
 
 namespace CursorEqualizer;
 
@@ -23,6 +24,8 @@ internal sealed class AppSettings
 
 internal sealed class SettingsManager
 {
+    internal const string StartupRegistryPath = @"Software\Microsoft\Windows\CurrentVersion\Run";
+    internal const string StartupValueName = "CursorEqualizer";
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         WriteIndented = true,
@@ -73,6 +76,43 @@ internal sealed class SettingsManager
         {
             if (File.Exists(temporary)) File.Delete(temporary);
         }
+    }
+
+    // The Run value is the source of truth, independent of monitor calibration JSON.
+    internal string? GetStartupCommand()
+    {
+        using var key = Registry.CurrentUser.OpenSubKey(StartupRegistryPath);
+        return key?.GetValue(StartupValueName, null, RegistryValueOptions.DoNotExpandEnvironmentNames) as string;
+    }
+
+    internal void SetStartWithWindows(bool enabled)
+    {
+        if (!enabled)
+        {
+            using var existing = Registry.CurrentUser.OpenSubKey(StartupRegistryPath, writable: true);
+            existing?.DeleteValue(StartupValueName, throwOnMissingValue: false);
+            return;
+        }
+        string executable = Environment.ProcessPath
+            ?? throw new InvalidOperationException("Cannot locate the application executable.");
+        string command = BuildStartupCommand(executable);
+        if (!File.Exists(executable)) throw new FileNotFoundException("The application executable is missing.", executable);
+        using var key = Registry.CurrentUser.CreateSubKey(StartupRegistryPath, writable: true);
+        key.SetValue(StartupValueName, command, RegistryValueKind.String);
+    }
+
+    internal static string BuildStartupCommand(string executable)
+    {
+        if (string.IsNullOrWhiteSpace(executable) || executable.IndexOfAny(['"', '\r', '\n', '\0']) >= 0 ||
+            !Path.IsPathFullyQualified(executable) ||
+            !Path.GetExtension(executable).Equals(".exe", StringComparison.OrdinalIgnoreCase) ||
+            Path.GetFileName(executable).Equals("dotnet.exe", StringComparison.OrdinalIgnoreCase))
+            throw new ArgumentException("Start CursorEqualizer.exe directly or use dotnet run before enabling Windows startup.", nameof(executable));
+        string command = $"\"{Path.GetFullPath(executable)}\" --minimized";
+        // Windows documents a 260-character limit for Run command lines.
+        if (command.Length > 260)
+            throw new ArgumentException("Move CursorEqualizer to a shorter path before enabling Windows startup.", nameof(executable));
+        return command;
     }
 
     private void Validate()
