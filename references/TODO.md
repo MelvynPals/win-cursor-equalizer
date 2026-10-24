@@ -7,6 +7,7 @@ Current work: main calibration scrolling now uses the same dark scrollbar as the
 - [x] Record two 60-sample runs; correct the first run's unverified Settings-open label to initial-observation. Verify Settings is hidden before/after the second background tray run.
 - [x] Independently recompute CPU from raw background sample deltas; document CPU, working set, private committed memory, handles and threads in references/PERFORMANCE.md.
 - [x] Record qualified claim wording and limits: approximately 0.02% total CPU and 83 MiB resident RAM in this 61-second background tray sample on this PC.
+- [x] Record the owner's requested rapid monitor-crossing workload for 10.155 seconds: 0.8366% average total CPU, 1.0582% highest one-second CPU sample, 84.30 MiB average working set. Preserve ten raw samples and JSON; crossing count and latency are not instrumented.
 - [ ] Optional follow-up before broader performance claims: controlled repeated monitor crossings, longer memory-stability sampling, startup/latency/energy measurements and other PCs.
 
 ## Support sidebar and branding (authorized 2026-10-24)

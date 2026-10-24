@@ -1,6 +1,6 @@
 # CursorEqualizer performance record
 
-Measured on 2026-10-25 at 04:14-04:16 Asia/Manila (2026-10-24 20:14-20:16 UTC). These are observations from one PC and one warmed-up process, not minimum requirements or guarantees.
+Background measurements: 2026-10-25 at 04:14-04:16 Asia/Manila (2026-10-24 20:14-20:16 UTC). User-driven crossing sample: 04:21 Asia/Manila (20:21 UTC). These are observations from one PC and one warmed-up process, not minimum requirements or guarantees.
 
 ## Build and test machine
 
@@ -52,8 +52,35 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/Measure-Performance.ps
 
 The PID is an example from this run. Hardware inspection may require execution outside the restricted coding sandbox. The script itself does not hide or open the app, move the pointer, or detect the scenario.
 
-## Wording supported by this measurement
+## User-driven rapid monitor crossings
+
+The owner requested a roughly 10-second stress sample and was asked to move the mouse rapidly between physical monitors from the start cue until the stop cue. Sampling ran from 04:21:45.778 to approximately 04:21:55.933 Asia/Manila on 2026-10-25 (20:21 UTC on 2026-10-24). Setup occurred after the start cue, so the requested motion interval was longer than the actual capture. Mouse movements and crossing count were not instrumented; this is a user-driven workload, not a controlled crossing-rate benchmark.
+
+The same running published process (PID 34624) and executable SHA-256 were measured. Source HEAD at capture was `670205cd8dd14b744fba69120c4e989bc9a67e4d`, with uncommitted versioning changes; the binary was not rebuilt between samples. Hardware, CPU normalization and one-second sampling match the background baseline.
+
+| Metric | Rapid monitor crossings |
+| --- | ---: |
+| Actual elapsed time | 10.155 s |
+| Samples | 10 |
+| Average CPU, whole machine | 0.8366% |
+| Highest sampled CPU interval, whole machine | 1.0582% |
+| Average CPU, one-core equivalent | 13.3863% |
+| Total process CPU time used | 1.359375 s |
+| Average resident working set | 84.30 MiB |
+| Working-set range | 84.17-84.56 MiB |
+| Average private committed memory | 23.51 MiB |
+| Private-memory range | 23.33-23.91 MiB |
+| Handles, sampled range | 396-399 |
+| Threads, sampled range | 11-12 |
+
+The process remained alive throughout the capture. These readings do not establish cursor-switch latency, smoothness, exact crossing throughput, or long-term memory stability. Working set averaged 1.67 MiB above the earlier background sample, but the samples occurred at different times; this is not an isolated allocation measurement or evidence of a leak.
+
+Evidence: [raw CSV](performance/20261024T202145Z-manual-rapid-monitor-crossings.csv), [metadata and summary JSON](performance/20261024T202145Z-manual-rapid-monitor-crossings.json). The CSV contains ten samples; its CPU-time and wall-time deltas independently reproduce the reported average.
+
+Suggested claim: 'In a 10-second user-driven rapid monitor-crossing sample on our Intel Core i5-14400F Windows 11 test PC, CursorEqualizer 1.0.0 averaged 0.84% total CPU and 84 MiB resident RAM; the highest one-second CPU reading was 1.06%.'
+
+## Wording supported by the background measurement
 
 Suggested claim: 'In a 61-second background tray sample on a Windows 11 PC with an Intel Core i5-14400F, CursorEqualizer 1.0.0 averaged about 0.02% total CPU and 83 MiB of resident RAM.'
 
-Keep the hardware and duration available alongside the claim. These samples do not establish zero CPU use, usage on all PCs, long-term memory stability, battery impact, GPU/disk/network usage, cold-start cost, cursor-switch latency, or performance during repeated monitor transitions. A longer repeated-monitor-crossing workload and multiple hardware configurations are needed before broader claims.
+Keep the hardware and duration available alongside the claim. The background samples do not establish zero CPU use, usage on all PCs, long-term memory stability, battery impact, GPU/disk/network usage, cold-start cost, cursor-switch latency, or performance during repeated monitor transitions. The separate user-driven sample above provides a short observation of the requested crossing workload. Longer controlled runs and multiple hardware configurations are needed before broader claims.

@@ -234,6 +234,8 @@ Current verification: clean build, 29 focused checks (including calibrated 23-to
 
 Performance evidence is recorded in [PERFORMANCE.md](PERFORMANCE.md), with raw per-second CSV samples and JSON summaries under references/performance. tools/Measure-Performance.ps1 samples an existing process without modifying the application. CPU uses elapsed process CPU time divided by actual elapsed wall time and logical processor count; working set and private committed bytes are recorded separately. Use the executable SHA-256 to identify the measured build, including uncommitted version-label changes. Only claim the measured workload and machine; monitor transitions, startup, energy consumption and long-term leak behavior require separate measurements.
 
+The record now also includes a 10.155-second user-driven rapid monitor-crossing sample (ten readings): average total CPU 0.8366%, highest one-second CPU 1.0582%, average working set 84.30 MiB on the documented i5-14400F PC. Crossing count and latency were not instrumented; use the report's workload qualifications with any claim.
+
 Example (substitute the current published process PID; keep its window hidden for tray-idle):
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File tools/Measure-Performance.ps1 -TargetProcessId 34624 -Scenario tray-idle -DurationSeconds 60
