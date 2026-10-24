@@ -2,6 +2,11 @@
 
 Current work: main calibration scrolling now uses the same dark scrollbar as the support sidebar. Build/publish, GUI smoke/restoration, actual drag/wheel and Home/End checks pass; native 125%/200% captures are saved. Owner requested the local commit. Recipient scan and PayPal browser checks remain owner release checks below.
 
+## Repository README (authorized 2026-10-25)
+- [x] Adapt the supplied external README template to CursorEqualizer's native .NET 8/WinForms stack, commands, architecture, calibration, startup, publishing and recovery.
+- [x] Include the existing app screenshot and qualified measured performance; credit only the personal maintainer and remove company-template ownership.
+- [x] Validate local links/image, command references, and absence of unrelated template content; commit the README milestone locally without pushing.
+
 ## Performance evidence (authorized 2026-10-25)
 - [x] Add reusable external tools/Measure-Performance.ps1 sampler and retain raw CSV/JSON with executable hash, version, source state and machine details.
 - [x] Record two 60-sample runs; correct the first run's unverified Settings-open label to initial-observation. Verify Settings is hidden before/after the second background tray run.

@@ -241,6 +241,10 @@ Example (substitute the current published process PID; keep its window hidden fo
 powershell -NoProfile -ExecutionPolicy Bypass -File tools/Measure-Performance.ps1 -TargetProcessId 34624 -Scenario tray-idle -DurationSeconds 60
 ```
 
+## Repository README
+
+README.md is the project entry point, adapted from the owner's supplied README template for a native Windows Forms tray utility. It covers prerequisites, calibration modes, tray/startup behavior, build/test/publish commands, architecture, settings, measured performance with limitations, recovery and personal maintainer links. Its screenshot is references/main-scrollbar.png. Web deployment, environment-variable and company-ownership sections do not apply. Local file/image links and documented commands were checked against the repository; only README documentation was changed in this milestone.
+
 ## API references
 - [EnumDisplayDevicesW and per-monitor interface names](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-enumdisplaydevicesw)
 - [DisplaySettingsChanged](https://learn.microsoft.com/en-us/dotnet/api/microsoft.win32.systemevents.displaysettingschanged)
