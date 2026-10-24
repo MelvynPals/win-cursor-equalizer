@@ -2,6 +2,13 @@
 
 Current work: main calibration scrolling now uses the same dark scrollbar as the support sidebar. Build/publish, GUI smoke/restoration, actual drag/wheel and Home/End checks pass; native 125%/200% captures are saved. Owner requested the local commit. Recipient scan and PayPal browser checks remain owner release checks below.
 
+## Performance evidence (authorized 2026-10-25)
+- [x] Add reusable external tools/Measure-Performance.ps1 sampler and retain raw CSV/JSON with executable hash, version, source state and machine details.
+- [x] Record two 60-sample runs; correct the first run's unverified Settings-open label to initial-observation. Verify Settings is hidden before/after the second background tray run.
+- [x] Independently recompute CPU from raw background sample deltas; document CPU, working set, private committed memory, handles and threads in references/PERFORMANCE.md.
+- [x] Record qualified claim wording and limits: approximately 0.02% total CPU and 83 MiB resident RAM in this 61-second background tray sample on this PC.
+- [ ] Optional follow-up before broader performance claims: controlled repeated monitor crossings, longer memory-stability sampling, startup/latency/energy measurements and other PCs.
+
 ## Support sidebar and branding (authorized 2026-10-24)
 - [x] Style Hide to tray as a primary white/black button at user request; clean build/publish and native screenshot verified.
 - [x] Replace the sidebar's bright native scrollbar with a rounded dark rail/thumb aligned to the close-button centerline; retain native content wheel/focus scrolling and add drag, page click and keyboard input. Verify Home/End and real thumb dragging; exercise wheel input. Inspect 125% and 200% captures, including corrected DPI-transition clipping.

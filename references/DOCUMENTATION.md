@@ -230,6 +230,15 @@ Phase 3 verification: clean build; all 29 Phase 2 checks pass; two-second GUI sm
 
 Current verification: clean build, 29 focused checks (including calibrated 23-to-31-to-23 calculation and reference persistence), cross-process settings reload, Auto/Manual/Calibrated selection, native smoke/restoration, and R refresh all passed. Fixed Manual sizing became too small at 150%; the user then confirmed Calibrated mode looks about the same at both 150% and 200%. The visual result establishes approximate consistency on this setup. Logs were not supplied to distinguish Windows events from fallback DPI detection. Physical hotplug/resolution/primary-display regression scenarios remain untested.
 
+## Performance measurements
+
+Performance evidence is recorded in [PERFORMANCE.md](PERFORMANCE.md), with raw per-second CSV samples and JSON summaries under references/performance. tools/Measure-Performance.ps1 samples an existing process without modifying the application. CPU uses elapsed process CPU time divided by actual elapsed wall time and logical processor count; working set and private committed bytes are recorded separately. Use the executable SHA-256 to identify the measured build, including uncommitted version-label changes. Only claim the measured workload and machine; monitor transitions, startup, energy consumption and long-term leak behavior require separate measurements.
+
+Example (substitute the current published process PID; keep its window hidden for tray-idle):
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/Measure-Performance.ps1 -TargetProcessId 34624 -Scenario tray-idle -DurationSeconds 60
+```
+
 ## API references
 - [EnumDisplayDevicesW and per-monitor interface names](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-enumdisplaydevicesw)
 - [DisplaySettingsChanged](https://learn.microsoft.com/en-us/dotnet/api/microsoft.win32.systemevents.displaysettingschanged)
