@@ -101,4 +101,21 @@ bool invalidSidRejected = false;
 try { SettingsManager.BuildElevatedStartupXml(@"C:\CursorEqualizer.exe", "not-a-sid"); }
 catch (ArgumentException) { invalidSidRejected = true; }
 Check(invalidSidRejected, "Reject invalid task user identity");
+Check(SettingsManager.GetInstallerStartupMode("preserve", StartupMode.Disabled) == StartupMode.Disabled,
+    "Upgrade preserves in-app startup opt-out");
+Check(SettingsManager.GetInstallerStartupMode("preserve", StartupMode.Standard) == StartupMode.Standard,
+    "Upgrade preserves standard registration without changing Windows approval state");
+Check(SettingsManager.GetInstallerStartupMode("preserve", StartupMode.Elevated) == StartupMode.Standard,
+    "Installer migrates legacy elevated startup to Windows-managed startup");
+Check(SettingsManager.GetInstallerStartupMode("standard", StartupMode.Disabled) == StartupMode.Standard &&
+    SettingsManager.GetInstallerStartupMode("disabled", StartupMode.Elevated) == StartupMode.Disabled,
+    "Fresh install selection and uninstall select the requested startup mode");
+bool badInstallerActionRejected = false;
+try { SettingsManager.GetInstallerStartupMode("unexpected", StartupMode.Standard); }
+catch (ArgumentException) { badInstallerActionRejected = true; }
+Check(badInstallerActionRejected, "Reject unknown installer action before changing startup");
+File.WriteAllText(file, "{ invalid json");
+_ = new SettingsManager(file, loadSettings: false);
+Check(File.ReadAllText(file) == "{ invalid json", "Startup-only installer helpers do not parse or overwrite malformed calibration");
+File.WriteAllText(file, original);
 Console.WriteLine($"PASS: {checks} sizing, persistence, identity, validation, preservation, and startup checks.");

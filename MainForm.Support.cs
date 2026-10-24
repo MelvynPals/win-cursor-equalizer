@@ -62,6 +62,12 @@ internal sealed partial class MainForm
         identity.Controls.Add(tagline);
         identity.SizeChanged += (_, _) => tagline.MaximumSize = new Size(Math.Max(1, identity.ClientSize.Width - tagline.Left), 0);
         body.Controls.Add(identity);
+        body.Controls.Add(new Label
+        {
+            Text = $"Version {Application.ProductVersion}", AutoSize = true,
+            Font = smallFont, ForeColor = Muted, Margin = new Padding(0, 0, 0, 8),
+            UseMnemonic = false
+        });
         var author = new LinkLabel
         {
             Text = $"Built by {ProjectLinks.Author}", AutoSize = true, Font = Font,

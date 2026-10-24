@@ -14,6 +14,12 @@ internal static class Program
             return 1;
         }
 
+        if (args.FirstOrDefault() == "--installer-startup")
+        {
+            try { return SettingsManager.ConfigureInstallerStartup(args); }
+            catch (Exception ex) { Console.Error.WriteLine(ex); return 1; }
+        }
+
         if (args.FirstOrDefault() == "--configure-startup")
         {
             try { SettingsManager.ConfigureStartup(args); return 0; }

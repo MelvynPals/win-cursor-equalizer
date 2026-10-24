@@ -3,5 +3,6 @@ obj/
 **/bin/
 **/obj/
 .local/
+artifacts/
 .vs/
 *.user

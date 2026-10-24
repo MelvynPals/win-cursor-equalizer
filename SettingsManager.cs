@@ -35,11 +35,11 @@ internal sealed partial class SettingsManager
     internal string FilePath { get; }
     internal AppSettings Settings { get; private set; } = new();
 
-    internal SettingsManager(string? filePath = null)
+    internal SettingsManager(string? filePath = null, bool loadSettings = true)
     {
         FilePath = filePath ?? Path.Combine(Environment.GetFolderPath(
             Environment.SpecialFolder.ApplicationData), "CursorEqualizer", "settings.json");
-        if (!File.Exists(FilePath)) return;
+        if (!loadSettings || !File.Exists(FilePath)) return;
         try
         {
             Settings = JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(FilePath), JsonOptions)

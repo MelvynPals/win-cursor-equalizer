@@ -31,7 +31,8 @@ Calibration is hands-on: choose a comfortable size on each display and compare i
 | Cursor and display APIs | Win32 P/Invoke, including `user32.dll` and `shcore.dll` |
 | Settings | Local JSON and per-user Registry entries |
 | Elevated startup | Windows Task Scheduler |
-| Published target | Framework-dependent Windows x64 single-file executable |
+| Release packaging | Per-user Windows x64 installer with bundled .NET runtime |
+| Development / portable target | Direct executable, with optional framework-dependent single-file publishing |
 
 ## Getting started
 
@@ -39,7 +40,7 @@ Calibration is hands-on: choose a comfortable size on each display and compare i
 
 - A Windows PC; current verification was performed on Windows 11.
 - The .NET 8 SDK to build from source.
-- The .NET 8 Windows Desktop Runtime x64 to run the published executable. It is not bundled.
+- The installer bundles the .NET runtime. A portable framework-dependent executable needs the .NET 8 Windows Desktop Runtime x64 separately.
 - Multiple monitors to use and verify per-monitor calibration.
 
 ### Build and run
@@ -105,13 +106,27 @@ Settings are stored in `%AppData%\CursorEqualizer\settings.json`, keyed by monit
 
 ## Publishing and updates
 
+Build the installable release with the .NET 8 SDK and Inno Setup 6.7+ or 7:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/Build-Installer.ps1
+```
+
+Output: `artifacts\installer\CursorEqualizer-<version>-Setup.exe`. Setup installs into `%LocalAppData%\Programs\CursorEqualizer`, creates a Start menu search shortcut, and registers uninstall in Windows Settings / Programs and Features. Newer versions upgrade the same installation and preserve calibration. Normal development still uses `dotnet run` without installing.
+
+Select standard startup during setup to control it through Task Manager > Startup apps or Windows Settings > Apps > Startup. An upgrade preserves Windows' disabled state. The advanced Elevated mode uses Task Scheduler instead and is separate from that toggle. Existing elevated startup may require administrator approval during migration or uninstall.
+
+Exit the running app through its tray menu before installation, upgrade or uninstall. Uninstall removes startup and installed files while retaining calibration data. The generated installer is currently unsigned. See [installer documentation](installer/README.md) for lifecycle details and verification status in [TODO.md](references/TODO.md).
+
+For a portable development copy with a separately installed runtime, the original command remains:
+
 ```powershell
 dotnet publish -c Release -p:PublishProfile=WinX64
 ```
 
 Output: `bin\Release\net8.0-windows\win-x64\publish\CursorEqualizer.exe`.
 
-The publish profile embeds assets and debug symbols into one executable and leaves trimming disabled. Copy the executable to a stable location on a PC with the required Windows Desktop Runtime. Exit the running app through its tray menu before replacing the file. Settings stay in AppData.
+The portable publish profile embeds assets and debug symbols into one executable and leaves trimming disabled. Copy the executable to a stable location on a PC with the required Windows Desktop Runtime. Exit the running app through its tray menu before replacing the file. Settings stay in AppData.
 
 If you move the executable, open the new copy and reselect the desired Windows startup mode so its registered path is updated. Keep a previous executable if you need to revert an update.
 

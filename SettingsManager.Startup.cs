@@ -19,6 +19,27 @@ internal sealed partial class SettingsManager
     }
     internal static string StartupTaskName(string sid) => "CursorEqualizer-" + new SecurityIdentifier(sid).Value;
 
+    // Installer helpers never start the cursor engine or read/write calibration JSON.
+    internal static int ConfigureInstallerStartup(string[] args)
+    {
+        if (args.Length != 2 || args[0] != "--installer-startup" ||
+            args[1] is not ("standard" or "disabled" or "preserve"))
+            throw new ArgumentException("Expected --installer-startup standard, disabled or preserve.");
+        var settings = new SettingsManager(loadSettings: false);
+        var requested = GetInstallerStartupMode(args[1], settings.GetStartupMode());
+        return settings.SetStartupModeAsync(requested).GetAwaiter().GetResult() ? 0 : 2;
+    }
+
+    internal static StartupMode GetInstallerStartupMode(string action, StartupMode existing) => action switch
+    {
+        "standard" => StartupMode.Standard,
+        "disabled" => StartupMode.Disabled,
+        // Installed releases use Windows-managed startup, including migration from a portable elevated task.
+        "preserve" when Enum.IsDefined(existing) => existing == StartupMode.Disabled
+            ? StartupMode.Disabled : StartupMode.Standard,
+        _ => throw new ArgumentException("Unknown installer startup action or mode.")
+    };
+
     internal StartupMode GetStartupMode()
     {
         string? xml = GetElevatedStartupTaskXml();
@@ -72,7 +93,7 @@ internal sealed partial class SettingsManager
         using var identity = WindowsIdentity.GetCurrent();
         if (!new WindowsPrincipal(identity).IsInRole(WindowsBuiltInRole.Administrator))
             throw new UnauthorizedAccessException("Administrator approval is required to change elevated startup.");
-        new SettingsManager().ApplyStartupMode(mode);
+        new SettingsManager(loadSettings: false).ApplyStartupMode(mode);
     }
 
     private void ApplyStartupMode(StartupMode mode)

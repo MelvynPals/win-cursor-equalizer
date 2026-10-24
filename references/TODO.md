@@ -1,6 +1,20 @@
 ﻿# CursorEqualizer TODO
 
-Current work: main calibration scrolling now uses the same dark scrollbar as the support sidebar. Build/publish, GUI smoke/restoration, actual drag/wheel and Home/End checks pass; native 125%/200% captures are saved. Owner requested the local commit. Recipient scan and PayPal browser checks remain owner release checks below.
+Current work: prepare the installable Windows release while retaining direct-executable development. Installer source, self-contained publishing, version 1.0.0 metadata and the Support & about label are included in the owner's explicitly requested checkpoint commit. Build and 52 focused checks pass. Remaining integration, UAC and physical-monitor checks are still pending; this checkpoint is not a verified release or version tag. Recipient scan and PayPal browser checks remain below.
+
+## Installable Windows release (authorized 2026-10-25)
+- [x] Add separate self-contained InstallerWinX64 publish profile and tools/Build-Installer.ps1; keep dotnet run and the existing portable publish profile.
+- [x] Add Inno Setup per-user installation with stable identity/path, Start menu shortcut, uninstall registration, versioned setup executable and downgrade protection.
+- [x] Require normal exit through the existing Local\\CursorEqualizer mutex before install/upgrade/uninstall; never force-close the engine.
+- [x] Add startup-only lifecycle helpers before the engine/mutex. Fresh install uses the selected standard startup mode; upgrades preserve off/standard registration and migrate elevated startup to standard. Uninstall removes startup registration; calibration JSON is untouched, including malformed files.
+- [x] Build zero warnings/errors; 52 focused checks pass, including migration choices and startup-only settings preservation.
+- [ ] Compile the self-contained setup; verify fresh install, search shortcut, installed-app metadata, same-version reinstall/new-version upgrade, downgrade rejection and uninstall cleanup.
+  - Setup 1.0.0 compiled (49,429,424 bytes; self-contained payload 162,008,567 bytes). First compiler resource-update attempt failed; retry succeeded without changing antivirus settings. An isolated 1.0.1 upgrade-test payload/setup was also built under .local; it has not been installed or released.
+  - Install and uninstall correctly refuse the running engine (exit 1). Fresh install creates the exact installed path, Start shortcut and one HKCU uninstall entry (version 1.0.0, publisher MelvynPals). Installed GUI smoke exits 0 and logs restoration. Calibration hash stays CBE1ADC8C5A5F11FC14BDD46568FC6BD48C621F8C1D66B76852096F5231024B5.
+  - Migration UAC was not approved: setup returns 10 with an explicit startup error; the legacy elevated task XML remains byte-for-byte equivalent after trimming the saved newline. Successful migration/upgrade/downgrade/uninstall checks are still pending Windows approval. The installed copy is open for owner review; old startup still points to the previous portable executable until migration succeeds.
+- [ ] Verify Task Manager / Windows Startup apps toggles control standard startup and survive an upgrade; elevated Task Scheduler startup is separate.
+- [x] Owner explicitly requests committing the current implementation for now, including versioning and the about label, with unfinished verification documented; checkpoint locally without a release tag or push.
+- [ ] Owner verifies installed app on physical monitors, Start search, uninstall/settings entry and startup behavior before marking the release verified.
 
 ## Repository README (authorized 2026-10-25)
 - [x] Adapt the supplied external README template to CursorEqualizer's native .NET 8/WinForms stack, commands, architecture, calibration, startup, publishing and recovery.
@@ -14,6 +28,19 @@ Current work: main calibration scrolling now uses the same dark scrollbar as the
 - [x] Record qualified claim wording and limits: approximately 0.02% total CPU and 83 MiB resident RAM in this 61-second background tray sample on this PC.
 - [x] Record the owner's requested rapid monitor-crossing workload for 10.155 seconds: 0.8366% average total CPU, 1.0582% highest one-second CPU sample, 84.30 MiB average working set. Preserve ten raw samples and JSON; crossing count and latency are not instrumented.
 - [ ] Optional follow-up before broader performance claims: controlled repeated monitor crossings, longer memory-stability sampling, startup/latency/energy measurements and other PCs.
+
+## Application versioning (authorized 2026-10-25)
+- [x] Count existing history: 14 commits = initial commit + 12 updates + one merge; no existing tags.
+- [x] Set explicit 1.0.0 baseline and document patch/minor/major numbering independently of settings schema version.
+- [x] Add CHANGELOG.md with historical commit references; leave release notes under Unreleased until verification.
+- [x] Show the compiled application version in Support & about using Application.ProductVersion and existing small muted text styling.
+- [ ] Owner confirms the version label on both displays; the installed copy now includes the label and is open for review.
+  - Label change builds and publishes to .local/versioning-1.0.0 with zero errors and the existing NU1900 audit warning. Runtime smoke attempt again reaches the existing-instance guard; visual verification remains pending.
+  - Follow-up: republished the canonical bin/Release/net8.0-windows/win-x64/publish executable. GUI smoke with settings access passed and logged restoration. Removed a stalled sandbox debug process after its restoration log; the canonical published app is now running with Support & about open. UI Automation confirms Version 1.0.0 is onscreen; .local/version-about.png was visually inspected at 125%. Second-display and owner confirmation remain pending.
+- [x] Build: zero warnings/errors. Publish to .local/versioning-1.0.0 succeeds; NU1900 audit connectivity warning persists after network-enabled retry. Debug and published exe report ProductVersion=1.0.0 / FileVersion=1.0.0.0.
+- [ ] Run the versioned build and obtain owner confirmation on physical monitors, following AGENTS.md.
+  - `dotnet run --no-build -- --smoke-test` reached the single-instance guard: an existing app is running. No cursor runtime/restoration pass is claimed for this change.
+- [ ] Finalize dated 1.0.0 notes, commit locally and create annotated v1.0.0 tag after confirmation; never push.
 
 ## Support sidebar and branding (authorized 2026-10-24)
 - [x] Style Hide to tray as a primary white/black button at user request; clean build/publish and native screenshot verified.
@@ -57,7 +84,7 @@ Current work: main calibration scrolling now uses the same dark scrollbar as the
 - [x] User authorizes committing the responsive redesign and slider fixes locally; never push.
 
 ## Next phase
-- Phase 4 implementation completed with user confirmation: standard/elevated startup and single-file publishing. No further development phase is defined; remaining regression checks are listed below.
+- Phase 4 implementation completed with user confirmation: standard/elevated startup and portable single-file publishing. The installable Windows release is the current additional milestone; its remaining integration/owner checks are tracked above.
 - Phase 3 UI checks were confirmed; standard and elevated startup both have user-confirmed restart verification.
 - Continue regression checks for restart persistence, smaller-window scrolling, and physical hotplug as relevant.
 

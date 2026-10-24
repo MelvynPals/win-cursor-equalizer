@@ -1,6 +1,18 @@
 ﻿# CursorEqualizer Documentation
 
 ## Current scope and files
+Application versioning: `CursorEqualizer.csproj` explicitly sets Version to `1.0.0`. The SDK generates product/informational version `1.0.0` and assembly/file version `1.0.0.0`; source revision suffixes are disabled. This is independent of settings JSON schema version 1.
+
+The Support & about drawer shows `Version 1.0.0` below the app identity and above the creator credit. MainForm.Support.cs reads `Application.ProductVersion` from compiled metadata, so future project-version changes appear automatically, including in single-file builds. The label uses the existing small muted text style and wrapping flow layout.
+
+Version-label verification: rebuilt and republished the canonical release executable; the GUI smoke passed with settings access and logged cursor restoration. Launched the published app, opened Support & about through UI Automation, confirmed Version 1.0.0 is onscreen, and inspected .local/version-about.png at 125%. Owner and second-display confirmation remain pending before the release commit/tag.
+
+Use patch increments for fixes (`1.0.1`), minor increments for compatible features (`1.1.0`), and major increments for breaking changes (`2.0.0`). Update the project version and CHANGELOG.md together. Do not number every commit or invent historical releases.
+
+Release workflow: build/publish, inspect executable ProductVersion/FileVersion, run the app, and obtain the owner's physical-monitor confirmation as required by AGENTS.md. Then move Unreleased notes into a dated version section, update TODO.md, commit locally and create an annotated tag, for example `git tag -a v1.0.0 -m 'Release 1.0.0'`. Never push. Initial release verification is pending; no tag has been created.
+
+Inspect metadata using `(Get-Item bin/Debug/net8.0-windows/CursorEqualizer.exe).VersionInfo | Select-Object ProductVersion, FileVersion`.
+
 Phase 3 is implemented as a .NET 8 (`net8.0-windows`, WinForms, WinExe) tray utility and the user confirmed its four requested UI/tray checks on 2026-10-23. Phase 2 calibrated sizing passed the user's 150%/200% visual comparison. The responsive redesign is committed as e6b63a1. Phase 4 standard Windows startup is implemented and the user confirmed it survived a restart; elevated startup also has user-confirmed restart verification, while single-file publishing is verified and user-confirmed.
 
 - `Program.cs`: first-call Per Monitor V2 DPI awareness, startup-configuration helper dispatch before the mutex/engine, session-local single-instance mutex, exit/crash/session hooks.
@@ -20,6 +32,18 @@ Phase 3 is implemented as a .NET 8 (`net8.0-windows`, WinForms, WinExe) tray uti
 - `SettingsManager.Startup.cs`: partial SettingsManager for startup modes, Task Scheduler COM/XML, UAC helper launch, same-account checks and rollback.
 - `tests/Phase2Checks/`: dependency-free focused sizing and settings checks.
 - `Properties/PublishProfiles/WinX64.pubxml`: framework-dependent Windows x64 single-file publish profile with embedded debug symbols and trimming disabled.
+
+## Installable release packaging
+
+The owner requested an installable public release while retaining direct-executable development on 2026-10-25. `installer/CursorEqualizer.iss` is a per-user Inno Setup definition with stable AppId `MelvynPals.CursorEqualizer`, default `%LocalAppData%\Programs\CursorEqualizer`, a Start menu shortcut, Installed apps/uninstall registration, in-place upgrades and downgrade rejection. It uses `Local\CursorEqualizer` to block install/uninstall while the app is running; CloseApplications is disabled to avoid forced cursor-engine termination. Calibration JSON is deliberately retained.
+
+`Properties/PublishProfiles/InstallerWinX64.pubxml` publishes a self-contained single-file payload with native-library extraction, embedded symbols and no trimming. `tools/Build-Installer.ps1` reads the numeric project Version, verifies payload product metadata, invokes Inno Setup and writes `artifacts/installer/CursorEqualizer-<version>-Setup.exe`. The payload is under artifacts/installer/app; artifacts is ignored. Normal dotnet run/build and the earlier framework-dependent WinX64 publish profile remain available.
+
+Program dispatches `--installer-startup standard|disabled|preserve` through SettingsManager before the mutex/engine. SettingsManager accepts `loadSettings: false` for these and elevated configuration helpers so malformed calibration cannot block removal. Existing same-account UAC/rollback handles task migration. Fresh install applies the startup checkbox. Upgrade preserves disabled/standard registration, migrates elevated to standard, and never changes Windows StartupApproved values. Standard is controlled by Task Manager/Windows Startup apps; elevated Task Scheduler startup remains separate. Uninstall removes startup before deleting files and aborts if cleanup fails. Setup returns 10 if post-install startup configuration fails; files remain installed and an error is shown. See [installer/README.md](../installer/README.md) for build instructions, lifecycle details and release checks.
+
+Verification so far: app build has zero warnings/errors; all 52 focused checks pass. The 1.0.0 setup compiled to 49,429,424 bytes and its bundled payload is 162,008,567 bytes. Running-engine install/uninstall guards both return 1 before removal/replacement. Fresh install creates the per-user Start shortcut and a single uninstall entry with version 1.0.0/publisher MelvynPals. The installed GUI smoke exits 0 and logs cursor restoration; calibration JSON SHA-256 is unchanged. Existing elevated-task migration did not receive UAC approval, so setup returned 10 and preserved the prior task XML. The installed app is open for review, but the prior portable elevated startup path remains registered. Successful migration, Task Manager toggles, full upgrade/downgrade/uninstall and owner monitor checks remain pending; no installer milestone commit or public release is claimed.
+
+The owner explicitly requested a local checkpoint commit of the current installer implementation, version metadata and about label before the remaining verification on 2026-10-25. This authorizes saving the current work without marking the release checks complete. No release tag or push is included; the UAC migration and remaining integration/physical-monitor checks still apply.
 
 ## Design experiment setup
 The `new-design` branch starts from the verified Phase 3 implementation (`583896e`). The existing, visually verified Phase 3 window capture is preserved as [design-before.png](design-before.png), 918 x 909 pixels at 125% window DPI. It shows D1 at 125%, D2 at 200%, and the established 32/23 px calibration. This is the baseline for a later design comparison; application source was not changed during setup.
