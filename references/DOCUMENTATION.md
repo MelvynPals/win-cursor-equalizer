@@ -45,6 +45,8 @@ Verification so far: app build has zero warnings/errors; all 52 focused checks p
 
 The owner explicitly requested a local checkpoint commit of the current installer implementation, version metadata and about label before the remaining verification on 2026-10-25. This authorizes saving the current work without marking the release checks complete. No release tag or push is included; the UAC migration and remaining integration/physical-monitor checks still apply.
 
+Owner verification follow-up (2026-10-25): after checkpoint 7d7b6af, the owner reports that installation succeeded, the installed app opened and worked, it appeared in the Windows Startup apps list, and uninstall through Windows Settings succeeded. This supersedes the earlier handoff state where the installed app was left open. It verifies the basic install/use/Settings-uninstall flow and startup-list visibility. It does not separately verify enabling/disabling startup, restart behavior, Start search, upgrades/downgrades, the earlier elevated-task migration sequence, or residual cleanup/settings preservation after uninstall. These remain explicit checks in TODO.md; no release tag is created from this report alone.
+
 ## Design experiment setup
 The `new-design` branch starts from the verified Phase 3 implementation (`583896e`). The existing, visually verified Phase 3 window capture is preserved as [design-before.png](design-before.png), 918 x 909 pixels at 125% window DPI. It shows D1 at 125%, D2 at 200%, and the established 32/23 px calibration. This is the baseline for a later design comparison; application source was not changed during setup.
 

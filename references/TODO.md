@@ -1,6 +1,6 @@
 ﻿# CursorEqualizer TODO
 
-Current work: prepare the installable Windows release while retaining direct-executable development. Installer source, self-contained publishing, version 1.0.0 metadata and the Support & about label are included in the owner's explicitly requested checkpoint commit. Build and 52 focused checks pass. Remaining integration, UAC and physical-monitor checks are still pending; this checkpoint is not a verified release or version tag. Recipient scan and PayPal browser checks remain below.
+Current work: the owner confirms installation, successful launch/use, appearance in Windows Startup apps, and uninstall through Settings. The installer/versioning checkpoint is committed as 7d7b6af; build and 52 focused checks passed. Upgrade/downgrade, startup-toggle/restart behavior and detailed cleanup checks remain pending. No release tag or public release is recorded. Recipient scan and PayPal browser checks remain below.
 
 ## Installable Windows release (authorized 2026-10-25)
 - [x] Add separate self-contained InstallerWinX64 publish profile and tools/Build-Installer.ps1; keep dotnet run and the existing portable publish profile.
@@ -8,13 +8,14 @@ Current work: prepare the installable Windows release while retaining direct-exe
 - [x] Require normal exit through the existing Local\\CursorEqualizer mutex before install/upgrade/uninstall; never force-close the engine.
 - [x] Add startup-only lifecycle helpers before the engine/mutex. Fresh install uses the selected standard startup mode; upgrades preserve off/standard registration and migrate elevated startup to standard. Uninstall removes startup registration; calibration JSON is untouched, including malformed files.
 - [x] Build zero warnings/errors; 52 focused checks pass, including migration choices and startup-only settings preservation.
+- [x] Owner confirms the installer installs the app, the installed app opens and works, it appears in the Windows Startup apps list, and uninstall through Windows Settings succeeds (2026-10-25).
 - [ ] Compile the self-contained setup; verify fresh install, search shortcut, installed-app metadata, same-version reinstall/new-version upgrade, downgrade rejection and uninstall cleanup.
   - Setup 1.0.0 compiled (49,429,424 bytes; self-contained payload 162,008,567 bytes). First compiler resource-update attempt failed; retry succeeded without changing antivirus settings. An isolated 1.0.1 upgrade-test payload/setup was also built under .local; it has not been installed or released.
   - Install and uninstall correctly refuse the running engine (exit 1). Fresh install creates the exact installed path, Start shortcut and one HKCU uninstall entry (version 1.0.0, publisher MelvynPals). Installed GUI smoke exits 0 and logs restoration. Calibration hash stays CBE1ADC8C5A5F11FC14BDD46568FC6BD48C621F8C1D66B76852096F5231024B5.
-  - Migration UAC was not approved: setup returns 10 with an explicit startup error; the legacy elevated task XML remains byte-for-byte equivalent after trimming the saved newline. Successful migration/upgrade/downgrade/uninstall checks are still pending Windows approval. The installed copy is open for owner review; old startup still points to the previous portable executable until migration succeeds.
+  - Initial automated migration UAC was not approved: setup returned 10 with an explicit startup error and preserved the legacy elevated task XML. The owner subsequently installed, used and uninstalled successfully and confirmed Startup apps visibility. The migration sequence and post-uninstall Registry/task/shortcut/settings state were not separately reported or audited.
 - [ ] Verify Task Manager / Windows Startup apps toggles control standard startup and survive an upgrade; elevated Task Scheduler startup is separate.
 - [x] Owner explicitly requests committing the current implementation for now, including versioning and the about label, with unfinished verification documented; checkpoint locally without a release tag or push.
-- [ ] Owner verifies installed app on physical monitors, Start search, uninstall/settings entry and startup behavior before marking the release verified.
+- [ ] Separately verify Start search, Task Manager enable/disable and restart behavior, upgrade/downgrade handling, and post-uninstall startup/shortcut cleanup plus settings preservation. The basic install/use/Settings-uninstall flow is owner-confirmed above.
 
 ## Repository README (authorized 2026-10-25)
 - [x] Adapt the supplied external README template to CursorEqualizer's native .NET 8/WinForms stack, commands, architecture, calibration, startup, publishing and recovery.

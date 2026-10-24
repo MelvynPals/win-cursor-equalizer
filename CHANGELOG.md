@@ -4,9 +4,9 @@
 
 - Introduce explicit application version 1.0.0 and a patch/minor/major versioning workflow.
 - Show the compiled application version in Support & about, below the app identity and above the creator credit.
-- Add a separate self-contained Windows installer with Start menu search shortcut, installed-app/uninstall registration, stable upgrade identity, version checks and startup lifecycle helpers. Keep direct-executable development. Full startup/upgrade/uninstall and owner verification remain pending.
+- Add a separate self-contained Windows installer with Start menu search shortcut, installed-app/uninstall registration, stable upgrade identity, version checks and startup lifecycle helpers. Keep direct-executable development. The owner confirms install, launch/use, Startup apps visibility and Settings uninstall; upgrade/downgrade, startup toggle/restart and detailed cleanup checks remain pending.
 
-1.0.0 is the baseline for the existing app. Runtime confirmation and a local release tag are pending. Earlier commits were development updates, not numbered releases.
+1.0.0 is the baseline for the existing app. Basic installed runtime behavior is owner-confirmed; remaining release verification and a local release tag are pending. Earlier commits were development updates, not numbered releases.
 
 ## Development history before versioning
 
