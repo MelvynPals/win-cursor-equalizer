@@ -1,6 +1,9 @@
 ﻿# CursorEqualizer Documentation
 
 ## Current scope and files
+
+README refresh (2026-10-28): `references/readme-screenshot.png` is an unchanged copy of the owner's Screenshot 2026-10-28 063434.png, showing the two-display calibration window at 125%/150% scaling. README uses it as the main image and includes version 1.0.1, installer/download instructions, the product website and account-free feedback form. Performance figures remain explicitly attributed to the measured 1.0.0 build.
+
 Application versioning: `CursorEqualizer.csproj` explicitly sets Version to `1.0.1`. The SDK generates product/informational version `1.0.1` and assembly/file version `1.0.1.0`; source revision suffixes are disabled. This is independent of settings JSON schema version 1.
 
 Feedback update build (2026-10-28): Release build passes with zero warnings/errors; portable WinX64 and self-contained InstallerWinX64 publishes succeed with NU1900 vulnerability-audit connectivity warnings. Inno Setup compiles `artifacts/installer/CursorEqualizer-1.0.1-Setup.exe`. Built, portable and installer-payload app metadata all report 1.0.1 / 1.0.1.0. Runtime smoke reaches the existing-instance guard, so the current app remains running and owner confirmation of the activated link/version is pending before committing. No release tag is created.

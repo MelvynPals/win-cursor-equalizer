@@ -25,6 +25,8 @@ Current work: the owner confirms the 1.0.1 installation worked and retained the 
 - [ ] Separately verify Start search, Task Manager enable/disable and restart behavior, upgrade/downgrade handling, and post-uninstall startup/shortcut cleanup plus settings preservation. The basic install/use/Settings-uninstall flow is owner-confirmed above.
 
 ## Repository README (authorized 2026-10-25)
+- [x] Refresh the main image with the owner's 2026-10-28 screenshot; add current 1.0.1 installer guidance, product website and account-free feedback link, and update the tools/Windows requirements descriptions. Preserve qualified 1.0.0 performance evidence.
+  - Inspect the supplied image; verify the repository copy has an identical SHA-256, all README local links resolve, and `git diff --check` passes. Documentation/assets only; no app rebuild or runtime change.
 - [x] Adapt the supplied external README template to CursorEqualizer's native .NET 8/WinForms stack, commands, architecture, calibration, startup, publishing and recovery.
 - [x] Include the existing app screenshot and qualified measured performance; credit only the personal maintainer and remove company-template ownership.
 - [x] Validate local links/image, command references, and absence of unrelated template content; commit the README milestone locally without pushing.

@@ -4,7 +4,9 @@ A Windows system tray utility for tuning cursor size across monitors with differ
 
 Status: 'Active development' · A personal project by [MelvynPals](https://github.com/MelvynPals).
 
-![CursorEqualizer dark calibration window](references/main-scrollbar.png)
+Current application version: `1.0.1`. [Website](https://cursor-equalizer.emjaypaleguin.com/) · [Downloads](https://github.com/MelvynPals/win-cursor-equalizer/releases) · [Send feedback](https://cursor-equalizer.emjaypaleguin.com/feedback)
+
+![CursorEqualizer calibration window showing two displays at 125% and 150% scaling](references/readme-screenshot.png)
 
 ## What it does
 
@@ -36,9 +38,15 @@ Calibration is hands-on: choose a comfortable size on each display and compare i
 
 ## Getting started
 
+### Install
+
+Download `CursorEqualizer-1.0.1-Setup.exe` from [GitHub Releases](https://github.com/MelvynPals/win-cursor-equalizer/releases) and run it. The Windows x64 installer bundles the .NET runtime and installs for your Windows account.
+
+For an update, exit the existing app through its tray menu before running setup. The 1.0.1 installation and retention of existing calibration have been verified by the maintainer.
+
 ### Prerequisites
 
-- A Windows PC; current verification was performed on Windows 11.
+- Windows 10 or later on an x64-compatible PC; current verification was performed on Windows 11.
 - The .NET 8 SDK to build from source.
 - The installer bundles the .NET runtime. A portable framework-dependent executable needs the .NET 8 Windows Desktop Runtime x64 separately.
 - Multiple monitors to use and verify per-monitor calibration.
@@ -99,7 +107,7 @@ The app polls cursor position and monitor identity about every 15 ms. It replace
 | `MainForm*.cs`, `DesignControls.cs`, `DesignScrollBar.cs` | Calibration window, support drawer, tray menu and controls |
 | `Assets/` | Embedded executable icon, branding and receiving QR image |
 | `tests/Phase2Checks/` | Dependency-free engine and settings checks |
-| `tools/` | Icon export and external process-performance sampling |
+| `tools/` | Installer builds, icon export and external process-performance sampling |
 | `references/` | Technical documentation, work tracking, screenshots and measurements |
 
 Settings are stored in `%AppData%\CursorEqualizer\settings.json`, keyed by monitor identity. Saved entries for disconnected displays are retained. Invalid settings are reported rather than silently overwritten. Cursor source paths are read from `HKCU\Control Panel\Cursors`.
@@ -164,5 +172,7 @@ Build and run each development milestone, verify behavior on physical monitors, 
 Created and maintained by [MelvynPals](https://github.com/MelvynPals) as a personal project.
 
 - [Report a bug or suggest a feature](https://github.com/MelvynPals/win-cursor-equalizer/issues).
+- [Send feedback without a GitHub account](https://cursor-equalizer.emjaypaleguin.com/feedback). In the app, open 'Support & about' and select 'Click Here' below the GitHub account note.
+- [CursorEqualizer website](https://cursor-equalizer.emjaypaleguin.com/) and [downloads](https://github.com/MelvynPals/win-cursor-equalizer/releases).
 - [Support development with PayPal](https://paypal.me/emjaypals). QR Ph support is also available in the app's Support & about drawer.
 - [Technical documentation](references/DOCUMENTATION.md), [development tasks](references/TODO.md), and [performance evidence](references/PERFORMANCE.md).
