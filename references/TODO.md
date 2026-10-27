@@ -44,6 +44,10 @@ Current work: the owner confirms installation, successful launch/use, appearance
 - [ ] Finalize dated 1.0.0 notes, commit locally and create annotated v1.0.0 tag after confirmation; never push.
 
 ## Support sidebar and branding (authorized 2026-10-24)
+- [x] Add "Don't have a GitHub account? Click Here" below the GitHub account note; leave the browser destination unset as requested (2026-10-28).
+  - `dotnet build` passes with zero warnings/errors; `git diff --check` passes. After dismissing stale duplicate-instance dialogs, `dotnet run --no-build` launches successfully. Owner confirms the added sentence looks good and requests the local commit (2026-10-28).
+- [x] Obtain owner visual confirmation of the added feedback sentence and authorization to commit locally.
+- [ ] Supply the alternative feedback browser destination when ready; intentionally left unset for now.
 - [x] Style Hide to tray as a primary white/black button at user request; clean build/publish and native screenshot verified.
 - [x] Replace the sidebar's bright native scrollbar with a rounded dark rail/thumb aligned to the close-button centerline; retain native content wheel/focus scrolling and add drag, page click and keyboard input. Verify Home/End and real thumb dragging; exercise wheel input. Inspect 125% and 200% captures, including corrected DPI-transition clipping.
 - [x] Reuse the dark scrollbar for the main calibration area; clip native chrome using a DPI-fitted viewport, size monitor rows to the visible viewport and keep header/footer fixed. Build/publish zero warnings/errors; GUI smoke restores cursors. Actual drag, wheel and Home/End pass; inspect references/main-scrollbar.png and main-scrollbar-200.png.

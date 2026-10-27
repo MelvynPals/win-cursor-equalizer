@@ -113,7 +113,23 @@ internal sealed partial class MainForm
         TextRow("Have an idea or a bug?", true);
         TextRow("Share what happened or suggest an improvement.", false, 16);
         LinkButton("Send feedback", ProjectLinks.Feedback, false);
-        TextRow("Opens GitHub issues. A GitHub account is required.", false, 24);
+        TextRow("Opens GitHub issues. A GitHub account is required.", false);
+        const string alternativeFeedbackText = "Don't have a GitHub account? Click Here";
+        var alternativeFeedback = new LinkLabel
+        {
+            Text = alternativeFeedbackText, AutoSize = true, Font = Font,
+            LinkArea = new LinkArea(alternativeFeedbackText.IndexOf("Click Here", StringComparison.Ordinal), "Click Here".Length),
+            LinkColor = DesignPalette.Ink, ActiveLinkColor = Accent,
+            VisitedLinkColor = DesignPalette.Ink, ForeColor = Muted,
+            LinkBehavior = LinkBehavior.HoverUnderline, Margin = new Padding(0, 0, 0, 24),
+            UseMnemonic = false
+        };
+        alternativeFeedback.LinkClicked += (_, _) =>
+        {
+            if (ProjectLinks.FeedbackWithoutAccount is { } destination)
+                RunAction(() => ProjectLinks.Open(destination));
+        };
+        body.Controls.Add(alternativeFeedback);
 
         bool sizing = false;
         body.Layout += (_, _) =>
