@@ -1,6 +1,13 @@
 ﻿# CursorEqualizer TODO
 
-Current work: the owner confirms installation, successful launch/use, appearance in Windows Startup apps, and uninstall through Settings. The installer/versioning checkpoint is committed as 7d7b6af; build and 52 focused checks passed. Upgrade/downgrade, startup-toggle/restart behavior and detailed cleanup checks remain pending. No release tag or public release is recorded. Recipient scan and PayPal browser checks remain below.
+Current work: the owner confirms the 1.0.1 installation worked and retained the current calibration (2026-10-28). The live feedback link and version bump are built; specific browser-link/version-label checks remain pending. Earlier installer integration and recipient/payment checks remain below; no release tag is recorded.
+
+## Feedback link update 1.0.1 (authorized 2026-10-28)
+- [x] Connect the sidebar's Click Here link to https://cursor-equalizer.emjaypaleguin.com/feedback and bump project version to 1.0.1.
+- [x] Build/publish app and setup; inspect version metadata. Release build has zero warnings/errors. Portable and self-contained publishes succeed with NU1900 vulnerability-audit connectivity warnings; Inno Setup compiles artifacts/installer/CursorEqualizer-1.0.1-Setup.exe successfully. All three app outputs report ProductVersion 1.0.1 / FileVersion 1.0.1.0. `git diff --check` passes.
+  - `dotnet run -c Release --no-build -- --smoke-test` reaches the existing-instance guard; the current app is left running. Runtime/browser-link and owner verification remain pending. The web inspection tool could not load the destination; owner reports the form is live. No feedback was submitted.
+- [x] Owner confirms the 1.0.1 installation worked and current calibration was retained (2026-10-28).
+- [ ] Owner separately verifies the browser link and Version 1.0.1 label; these details were not explicitly reported with installation confirmation. Save the installed update locally without claiming these checks or creating a release tag; never push.
 
 ## Installable Windows release (authorized 2026-10-25)
 - [x] Add separate self-contained InstallerWinX64 publish profile and tools/Build-Installer.ps1; keep dotnet run and the existing portable publish profile.
@@ -47,7 +54,7 @@ Current work: the owner confirms installation, successful launch/use, appearance
 - [x] Add "Don't have a GitHub account? Click Here" below the GitHub account note; leave the browser destination unset as requested (2026-10-28).
   - `dotnet build` passes with zero warnings/errors; `git diff --check` passes. After dismissing stale duplicate-instance dialogs, `dotnet run --no-build` launches successfully. Owner confirms the added sentence looks good and requests the local commit (2026-10-28).
 - [x] Obtain owner visual confirmation of the added feedback sentence and authorization to commit locally.
-- [ ] Supply the alternative feedback browser destination when ready; intentionally left unset for now.
+- [x] Supply the alternative feedback browser destination: https://cursor-equalizer.emjaypaleguin.com/feedback (2026-10-28).
 - [x] Style Hide to tray as a primary white/black button at user request; clean build/publish and native screenshot verified.
 - [x] Replace the sidebar's bright native scrollbar with a rounded dark rail/thumb aligned to the close-button centerline; retain native content wheel/focus scrolling and add drag, page click and keyboard input. Verify Home/End and real thumb dragging; exercise wheel input. Inspect 125% and 200% captures, including corrected DPI-transition clipping.
 - [x] Reuse the dark scrollbar for the main calibration area; clip native chrome using a DPI-fitted viewport, size monitor rows to the visible viewport and keep header/footer fixed. Build/publish zero warnings/errors; GUI smoke restores cursors. Actual drag, wheel and Home/End pass; inspect references/main-scrollbar.png and main-scrollbar-200.png.

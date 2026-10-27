@@ -124,11 +124,8 @@ internal sealed partial class MainForm
             LinkBehavior = LinkBehavior.HoverUnderline, Margin = new Padding(0, 0, 0, 24),
             UseMnemonic = false
         };
-        alternativeFeedback.LinkClicked += (_, _) =>
-        {
-            if (ProjectLinks.FeedbackWithoutAccount is { } destination)
-                RunAction(() => ProjectLinks.Open(destination));
-        };
+        alternativeFeedback.AccessibleDescription = "Opens the CursorEqualizer feedback form in your web browser.";
+        alternativeFeedback.LinkClicked += (_, _) => RunAction(() => ProjectLinks.Open(ProjectLinks.FeedbackWithoutAccount));
         body.Controls.Add(alternativeFeedback);
 
         bool sizing = false;

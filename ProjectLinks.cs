@@ -11,8 +11,7 @@ internal static class ProjectLinks
             "## Issue or suggestion\n\nDescribe what happened or what you would like improved.\n\n" +
             "## Setup\n\n- Windows version:\n- Display scaling:\n"));
     internal static readonly Uri PayPal = new("https://paypal.me/emjaypals");
-    // Leave unset until an alternative feedback destination is provided.
-    internal static readonly Uri? FeedbackWithoutAccount = null;
+    internal static readonly Uri FeedbackWithoutAccount = new("https://cursor-equalizer.emjaypaleguin.com/feedback");
 
     internal static void Open(Uri destination)
     {

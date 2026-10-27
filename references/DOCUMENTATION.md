@@ -1,9 +1,13 @@
 ﻿# CursorEqualizer Documentation
 
 ## Current scope and files
-Application versioning: `CursorEqualizer.csproj` explicitly sets Version to `1.0.0`. The SDK generates product/informational version `1.0.0` and assembly/file version `1.0.0.0`; source revision suffixes are disabled. This is independent of settings JSON schema version 1.
+Application versioning: `CursorEqualizer.csproj` explicitly sets Version to `1.0.1`. The SDK generates product/informational version `1.0.1` and assembly/file version `1.0.1.0`; source revision suffixes are disabled. This is independent of settings JSON schema version 1.
 
-The Support & about drawer shows `Version 1.0.0` below the app identity and above the creator credit. MainForm.Support.cs reads `Application.ProductVersion` from compiled metadata, so future project-version changes appear automatically, including in single-file builds. The label uses the existing small muted text style and wrapping flow layout.
+Feedback update build (2026-10-28): Release build passes with zero warnings/errors; portable WinX64 and self-contained InstallerWinX64 publishes succeed with NU1900 vulnerability-audit connectivity warnings. Inno Setup compiles `artifacts/installer/CursorEqualizer-1.0.1-Setup.exe`. Built, portable and installer-payload app metadata all report 1.0.1 / 1.0.1.0. Runtime smoke reaches the existing-instance guard, so the current app remains running and owner confirmation of the activated link/version is pending before committing. No release tag is created.
+
+The Support & about drawer shows `Version 1.0.1` below the app identity and above the creator credit. MainForm.Support.cs reads `Application.ProductVersion` from compiled metadata, so future project-version changes appear automatically, including in single-file builds. The label uses the existing small muted text style and wrapping flow layout.
+
+Owner follow-up (2026-10-28): the 1.0.1 installation worked and retained the current calibration. This verifies the installed update and calibration preservation. Opening the new browser link and inspecting the 1.0.1 label were not separately reported; those checks remain pending while the installed update is saved locally. No release tag is created.
 
 Version-label verification: rebuilt and republished the canonical release executable; the GUI smoke passed with settings access and logged cursor restoration. Launched the published app, opened Support & about through UI Automation, confirmed Version 1.0.0 is onscreen, and inspected .local/version-about.png at 125%. Owner and second-display confirmation remain pending before the release commit/tag.
 
@@ -92,7 +96,7 @@ Verification of the corrected implementation: final build zero warnings/errors; 
 
 ## Support sidebar and application branding
 
-The feedback section ends with "Don't have a GitHub account? Click Here". Only "Click Here" is a link, using the existing sidebar link styling and wrapping. Its optional ProjectLinks.FeedbackWithoutAccount destination is intentionally unset; clicking does nothing until an HTTPS destination is supplied.
+The feedback section ends with "Don't have a GitHub account? Click Here". Only "Click Here" is a link, using the existing sidebar link styling and wrapping. ProjectLinks.FeedbackWithoutAccount opens https://cursor-equalizer.emjaypaleguin.com/feedback in the default browser. The website owns form submission and email delivery; the desktop app contains no Resend credentials.
 
 Verification (2026-10-28): build passes with zero warnings/errors, the updated app launches through `dotnet run --no-build`, and the owner confirms the sentence looks good and authorizes the local commit.
 

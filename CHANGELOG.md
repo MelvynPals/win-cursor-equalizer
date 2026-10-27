@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### 1.0.1 update
+
+- Activate the support sidebar's "Click Here" link to open https://cursor-equalizer.emjaypaleguin.com/feedback without requiring a GitHub account.
+- Bump application and installer metadata to 1.0.1. The owner confirms installation succeeds and existing calibration is retained. Browser-link and version-label checks remain tracked in references/TODO.md; no release tag is claimed.
+
+### 1.0.0 baseline
+
 - Introduce explicit application version 1.0.0 and a patch/minor/major versioning workflow.
 - Show the compiled application version in Support & about, below the app identity and above the creator credit.
 - Add a separate self-contained Windows installer with Start menu search shortcut, installed-app/uninstall registration, stable upgrade identity, version checks and startup lifecycle helpers. Keep direct-executable development. The owner confirms install, launch/use, Startup apps visibility and Settings uninstall; upgrade/downgrade, startup toggle/restart and detailed cleanup checks remain pending.
