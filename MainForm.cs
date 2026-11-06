@@ -57,7 +57,7 @@ internal sealed partial class MainForm : Form
         var title = new Label { Text = "Display calibration", Font = headingFont, AutoSize = true, Location = new Point(22, 71) };
         var subtitle = new Label
         {
-            Text = "Match the cursor size as you move between screens.", ForeColor = Muted, AutoSize = true,
+            Text = "Resizes cursor themes with .cur/.ani files.", ForeColor = Muted, AutoSize = true,
             Location = new Point(23, 108)
         };
         pauseButton = MakeButton("Pause equalizer", (_, _) => TogglePause());

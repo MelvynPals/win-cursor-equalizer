@@ -19,6 +19,8 @@ Current application version: `1.0.1`. [Website](https://cursor-equalizer.emjaypa
 
 Calibration is hands-on: choose a comfortable size on each display and compare it visually. Equal physical appearance depends on your screens and cursor theme.
 
+'Custom cursor files required for resizing.' CursorEqualizer resizes roles backed by `.cur` or `.ani` files in the active scheme. Windows default cursors without custom files keep their Windows size; moving the calibration sliders has no effect on those roles. Switching between default and custom schemes is supported, and active cursor-file changes are detected automatically.
+
 ## Tech stack
 
 ![C sharp](https://img.shields.io/badge/C%23-512BD4?style=for-the-badge)

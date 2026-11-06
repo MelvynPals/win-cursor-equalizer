@@ -15,6 +15,8 @@ internal sealed class CursorManager
     private long refreshAfter;
     private int refreshRequested;
     private long nextDpiProbe;
+    private long nextCursorProbe;
+    private readonly CursorSchemeState cursorScheme = new();
     private int? secondaryTestPixels;
     private uint primaryDpi;
     private readonly object gate = new();
@@ -58,9 +60,11 @@ internal sealed class CursorManager
     {
         lock (gate)
         {
-            ReadCursorSources();
+            string[] snapshot = ReadCursorSnapshot();
+            ReadCursorSources(snapshot);
             if (!RestoreRegistryScheme())
                 throw new InvalidOperationException("Could not reload the registry cursor scheme.");
+            cursorScheme.Accept(snapshot);
             lastMonitor = IntPtr.Zero;
         }
     }
@@ -68,6 +72,32 @@ internal sealed class CursorManager
     private sealed record MonitorDetails(IntPtr Handle, string Name, string Id, NativeMethods.RECT Bounds,
         uint DpiX, uint DpiY, bool Primary);
     private sealed record CursorSource(string Role, uint Id, string Path);
+
+    // A scheme may be written one role at a time. Block replacements until the
+    // observed values have stayed unchanged for 250 ms, including while paused.
+    internal sealed class CursorSchemeState
+    {
+        private string[] snapshot = [];
+        private long changedAt;
+        internal bool Pending { get; private set; }
+
+        internal bool Observe(string[] current, long now)
+        {
+            if (!snapshot.SequenceEqual(current, StringComparer.Ordinal))
+            {
+                snapshot = (string[])current.Clone();
+                changedAt = now;
+                Pending = true;
+            }
+            return Pending && now - changedAt >= 250;
+        }
+
+        internal void Accept(string[] current)
+        {
+            snapshot = (string[])current.Clone();
+            Pending = false;
+        }
+    }
 
     private static readonly (string Role, uint Id)[] Roles =
     [
@@ -88,7 +118,9 @@ internal sealed class CursorManager
         this.inverseDpi = inverseDpi;
         this.settings = settings;
         RefreshMonitors();
-        ReadCursorSources();
+        string[] snapshot = ReadCursorSnapshot();
+        ReadCursorSources(snapshot);
+        cursorScheme.Accept(snapshot);
     }
 
     internal void RequestDisplayRefresh()
@@ -191,15 +223,22 @@ internal sealed class CursorManager
         }
     }
 
-    private void ReadCursorSources()
+    private static string[] ReadCursorSnapshot()
     {
-        var discovered = new List<CursorSource>();
         using var key = Registry.CurrentUser.OpenSubKey(@"Control Panel\Cursors")
             ?? throw new InvalidOperationException("The current user's cursor registry key is missing.");
+        return Roles.Select(role => key.GetValue(role.Role, null,
+            RegistryValueOptions.DoNotExpandEnvironmentNames) as string ?? "").ToArray();
+    }
+
+    private void ReadCursorSources(string[] snapshot)
+    {
+        var discovered = new List<CursorSource>();
         Console.WriteLine("Registry cursor sources:");
-        foreach (var (role, id) in Roles)
+        for (int index = 0; index < Roles.Length; index++)
         {
-            var raw = key.GetValue(role, null, RegistryValueOptions.DoNotExpandEnvironmentNames) as string;
+            var (role, id) = Roles[index];
+            string raw = snapshot[index];
             if (string.IsNullOrWhiteSpace(raw))
             {
                 Console.WriteLine($"  {role}: skipped (no custom file configured)");
@@ -217,7 +256,7 @@ internal sealed class CursorManager
             Console.WriteLine($"  {role} ({id}): {path}");
         }
         if (discovered.Count == 0)
-            throw new InvalidOperationException("No usable custom .cur/.ani files found. Select a custom cursor scheme first.");
+            Console.WriteLine("  No usable custom files; leaving Windows registry cursors unchanged.");
         sources.Clear();
         sources.AddRange(discovered);
     }
@@ -321,10 +360,29 @@ internal sealed class CursorManager
                     return;
                 }
             }
-            if (paused) return;
             // Secure desktop transitions can temporarily make position unavailable.
-            if (!NativeMethods.GetCursorPos(out var point)) return;
-            IntPtr handle = NativeMethods.MonitorFromPoint(point, NativeMethods.MONITOR_DEFAULTTONEAREST);
+            bool hasPosition = NativeMethods.GetCursorPos(out var point);
+            IntPtr handle = hasPosition
+                ? NativeMethods.MonitorFromPoint(point, NativeMethods.MONITOR_DEFAULTTONEAREST) : IntPtr.Zero;
+            long now = Environment.TickCount64;
+            // Check before a replacement as well as periodically, so a boundary
+            // crossing cannot reapply paths already changed in the registry.
+            if (now >= nextCursorProbe || (!paused && handle != IntPtr.Zero && handle != lastMonitor))
+            {
+                nextCursorProbe = now + 250;
+                string[] snapshot = ReadCursorSnapshot();
+                if (cursorScheme.Observe(snapshot, now))
+                {
+                    ReadCursorSources(snapshot);
+                    // Reset every role first, including roles absent from the new pack.
+                    if (!RestoreRegistryScheme())
+                        throw new InvalidOperationException("Could not restore the changed registry cursor scheme.");
+                    cursorScheme.Accept(snapshot);
+                    lastMonitor = IntPtr.Zero;
+                    Console.WriteLine("Cursor scheme change detected; registry sources refreshed automatically.");
+                }
+            }
+            if (paused || cursorScheme.Pending) return;
             if (handle == IntPtr.Zero || handle == lastMonitor) return;
             if (!monitors.TryGetValue(handle, out var monitor))
             {

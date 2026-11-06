@@ -7,6 +7,30 @@ void Check(bool condition, string message)
     checks++;
 }
 var primary = new MonitorSettings { DiagonalInches = 24.5 };
+var scheme = new CursorManager.CursorSchemeState();
+scheme.Accept(["old.cur", "old.ani"]);
+Check(!scheme.Observe(["old.cur", "old.ani"], 1000) && !scheme.Pending,
+    "Unchanged scheme does not request cursor replacement");
+Check(!scheme.Observe(["new.cur", "old.ani"], 1100) && scheme.Pending,
+    "First changed role blocks cached replacements immediately");
+Check(!scheme.Observe(["new.cur", "new.ani"], 1300),
+    "Subsequent role writes restart the scheme settling interval");
+Check(!scheme.Observe(["new.cur", "new.ani"], 1549) && scheme.Pending,
+    "Partial scheme is not applied before settling");
+Check(scheme.Observe(["new.cur", "new.ani"], 1550),
+    "Settled complete scheme becomes ready");
+scheme.Accept(["new.cur", "new.ani"]);
+Check(!scheme.Observe(["new.cur", "new.ani"], 2000) && !scheme.Pending,
+    "Accepted scheme is not reapplied on subsequent probes");
+Check(!scheme.Observe(["", ""], 2100) && scheme.Observe(["", ""], 2350),
+    "Switch to Windows defaults settles like a custom scheme");
+scheme.Accept(["", ""]);
+Check(!scheme.Pending && !scheme.Observe(["", ""], 3000),
+    "Default scheme remains idle after accepting empty paths");
+scheme.Observe(["temporary.cur", ""], 3100);
+scheme.Accept(["reloaded.cur", ""]);
+Check(!scheme.Pending && !scheme.Observe(["reloaded.cur", ""], 3400),
+    "Manual reload supersedes a pending automatic change");
 var secondary = new MonitorSettings { DiagonalInches = 16 };
 Check(CursorManager.CalculateTargetPixels(32, 120, 192, primary, secondary) == 16, "Requested formula/lower clamp");
 Check(CursorManager.CalculateTargetPixels(32, 120, 120, primary, primary) == 32, "Primary reference size");

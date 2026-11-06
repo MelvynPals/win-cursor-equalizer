@@ -1,6 +1,15 @@
 ﻿# CursorEqualizer TODO
 
-Current work: the owner confirms the 1.0.1 installation worked and retained the current calibration (2026-10-28). The live feedback link and version bump are built; specific browser-link/version-label checks remain pending. Earlier installer integration and recipient/payment checks remain below; no release tag is recorded.
+Current work: automatic cursor-scheme refresh is owner-verified on physical monitors (2026-11-06). The custom-file resizing limitation is now stated in Settings, Support & about and README. Earlier 1.0.1, installer integration and recipient/payment checks remain below; no release tag is recorded.
+
+## Automatic cursor-scheme refresh (authorized 2026-11-06)
+- [x] Read active cursor-role paths every 250 ms and before monitor replacement; block cached replacements while changed paths settle for 250 ms. Keep registry access read-only and all engine work inside CursorManager.
+- [x] Restore all registry cursor roles before applying a changed pack, including roles missing from the new pack. Refresh while paused without resizing until resumed. Manual Reload accepts the latest snapshot immediately.
+- [x] Accept schemes with no usable custom files at startup and Reload; leave Windows cursors active instead of throwing or reusing the previous pack.
+- [x] Build zero warnings/errors; 61 focused checks pass (nine new checks cover settling, multi-role writes, unchanged/default schemes and manual reload superseding a pending change). Console and GUI smoke tests exit 0, apply Glitch roles and log registry restoration. Sandbox-only console attempt failed on AppData access; approved retry passed.
+- [x] Owner confirms all four requested checks: custom-scheme changes and cross-monitor behavior without Reload; default/custom switching; pause/change/resume; tray Exit restoration. Owner confirms Windows defaults do not resize, as expected for roles without custom files. Individual missing-role, animation and manual-Reload checks were not separately reported.
+- [x] State the custom .cur/.ani resizing requirement and Windows-default limitation in the app and README at the owner's request. Website source is outside this repository and was not changed.
+- [x] Save the owner-verified fix and limitation copy in a local commit, following AGENTS.md; never push. Final copy update builds with zero warnings/errors and GUI smoke exits 0 with restoration. Scheme-list backups and identifying the historical deletion trigger remain separate work.
 
 ## Feedback link update 1.0.1 (authorized 2026-10-28)
 - [x] Connect the sidebar's Click Here link to https://cursor-equalizer.emjaypaleguin.com/feedback and bump project version to 1.0.1.

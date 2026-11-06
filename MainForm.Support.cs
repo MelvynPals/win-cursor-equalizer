@@ -99,6 +99,8 @@ internal sealed partial class MainForm
             body.Controls.Add(button);
             return button;
         }
+        TextRow("Supported cursor themes", true);
+        TextRow("Resizing requires a theme with custom .cur or .ani files. Windows default cursors without custom files keep their Windows size, even when you adjust the sliders.", false, 30);
         TextRow("Keep it going", true);
         TextRow("If CursorEqualizer makes your setup easier, you can support its development.", false, 16);
         LinkButton("Support with PayPal", ProjectLinks.PayPal, true);

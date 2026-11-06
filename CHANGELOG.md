@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Detect active cursor-path changes automatically, settle multi-role writes before applying them, and reset missing roles when switching packs. Accept Windows default schemes without requiring custom cursor files. The owner verified custom/default switching, monitor crossings, pause/change/resume and exit restoration on 6 November 2026.
+- Clarify in Settings, Support & about and the README that resizing requires custom .cur/.ani files; Windows defaults without custom files keep their Windows size despite slider changes.
+
 ### 1.0.1 update
 
 - Activate the support sidebar's "Click Here" link to open https://cursor-equalizer.emjaypaleguin.com/feedback without requiring a GitHub account.
