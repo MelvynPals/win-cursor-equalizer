@@ -2,13 +2,17 @@
 
 ## Current scope and files
 
+Version 1.0.2 installer build (2026-11-06): includes the owner-verified automatic scheme refresh and custom-file limitation copy. The owner confirms the installer/update and Version 1.0.2 label are correct; the milestone is saved locally with annotated tag v1.0.2, without pushing. Release build passes with zero warnings/errors; all 61 focused checks pass. The self-contained payload reports ProductVersion 1.0.2 / FileVersion 1.0.2.0. Inno Setup compiled artifacts/installer/CursorEqualizer-1.0.2-Setup.exe (49,430,141 bytes), whose ProductVersion is 1.0.2. SHA-256: 69466BEB95388FBF1B3E0AC2EEB5B7C58C0A02EF57653A4CBE0DE35D45DAE04D.
+
+The normal build helper published successfully with the existing NU1900 audit-connectivity warning, but Inno resource updates repeatedly failed in project output folders. Compiling the unchanged installer definition with /DAppVersion=1.0.2 and the published payload into a fresh Windows TEMP directory succeeded; the completed setup was copied back to artifacts/installer. No antivirus configuration was changed. The versioned self-contained GUI smoke exits 0 and logs registry restoration. UI Automation did not locate a window during this smoke; the owner subsequently supplied installation/update and visible-label confirmation. MainForm.Support.cs continues to display Application.ProductVersion automatically. The agent did not run the installer or publish externally.
+
 README refresh (2026-10-28): `references/readme-screenshot.png` is an unchanged copy of the owner's Screenshot 2026-10-28 063434.png, showing the two-display calibration window at 125%/150% scaling. README uses it as the main image and includes version 1.0.1, installer/download instructions, the product website and account-free feedback form. Performance figures remain explicitly attributed to the measured 1.0.0 build.
 
-Application versioning: `CursorEqualizer.csproj` explicitly sets Version to `1.0.1`. The SDK generates product/informational version `1.0.1` and assembly/file version `1.0.1.0`; source revision suffixes are disabled. This is independent of settings JSON schema version 1.
+Application versioning: `CursorEqualizer.csproj` explicitly sets Version to `1.0.2`. The SDK generates product/informational version `1.0.2` and assembly/file version `1.0.2.0`; source revision suffixes are disabled. This is independent of settings JSON schema version 1.
 
 Feedback update build (2026-10-28): Release build passes with zero warnings/errors; portable WinX64 and self-contained InstallerWinX64 publishes succeed with NU1900 vulnerability-audit connectivity warnings. Inno Setup compiles `artifacts/installer/CursorEqualizer-1.0.1-Setup.exe`. Built, portable and installer-payload app metadata all report 1.0.1 / 1.0.1.0. Runtime smoke reaches the existing-instance guard, so the current app remains running and owner confirmation of the activated link/version is pending before committing. No release tag is created.
 
-The Support & about drawer shows `Version 1.0.1` below the app identity and above the creator credit. MainForm.Support.cs reads `Application.ProductVersion` from compiled metadata, so future project-version changes appear automatically, including in single-file builds. The label uses the existing small muted text style and wrapping flow layout.
+The Support & about drawer shows `Version 1.0.2` below the app identity and above the creator credit. MainForm.Support.cs reads `Application.ProductVersion` from compiled metadata, so future project-version changes appear automatically, including in single-file builds. The label uses the existing small muted text style and wrapping flow layout.
 
 Owner follow-up (2026-10-28): the 1.0.1 installation worked and retained the current calibration. This verifies the installed update and calibration preservation. Opening the new browser link and inspecting the 1.0.1 label were not separately reported; those checks remain pending while the installed update is saved locally. No release tag is created.
 
@@ -16,7 +20,7 @@ Version-label verification: rebuilt and republished the canonical release execut
 
 Use patch increments for fixes (`1.0.1`), minor increments for compatible features (`1.1.0`), and major increments for breaking changes (`2.0.0`). Update the project version and CHANGELOG.md together. Do not number every commit or invent historical releases.
 
-Release workflow: build/publish, inspect executable ProductVersion/FileVersion, run the app, and obtain the owner's physical-monitor confirmation as required by AGENTS.md. Then move Unreleased notes into a dated version section, update TODO.md, commit locally and create an annotated tag, for example `git tag -a v1.0.0 -m 'Release 1.0.0'`. Never push. Initial release verification is pending; no tag has been created.
+Release workflow: build/publish, inspect executable ProductVersion/FileVersion, run the app, and obtain the owner's physical-monitor confirmation as required by AGENTS.md. Then move Unreleased notes into a dated version section, update TODO.md, commit locally and create an annotated tag. Never push. Version 1.0.2 has owner confirmation and a local v1.0.2 tag; earlier integration regression checks remain tracked separately.
 
 Inspect metadata using `(Get-Item bin/Debug/net8.0-windows/CursorEqualizer.exe).VersionInfo | Select-Object ProductVersion, FileVersion`.
 
@@ -186,7 +190,7 @@ Automatic scheme refresh (2026-11-06): CursorManager reads the 13 active raw reg
 
 Empty/unsupported/missing custom paths are skipped. If no usable custom files remain, initialization and Reload succeed and the engine leaves Windows cursors active; built-in/default cursor sizing is not added. Manual Reload accepts its snapshot immediately. Only the active role paths are compared; changing saved scheme names/list entries alone does not trigger a cursor replacement. This change does not back up or restore the saved Schemes list.
 
-Verification: dotnet build passes with zero warnings/errors; all 61 focused checks pass, including nine scheme-state regression checks. Console and GUI smoke tests on the current Glitch scheme both exit 0 and log restoration. On 6 November 2026 the owner confirmed all four requested physical-monitor checks: custom-scheme changes without Reload, default/custom transitions, pause/change/resume and tray Exit restoration. Individual missing-role, animation and manual-Reload checks were not separately reported. The source-change behavior is unreleased; application metadata remains 1.0.1.
+Verification: dotnet build passes with zero warnings/errors; all 61 focused checks pass, including nine scheme-state regression checks. Console and GUI smoke tests on the current Glitch scheme both exit 0 and log restoration. On 6 November 2026 the owner confirmed all four requested physical-monitor checks: custom-scheme changes without Reload, default/custom transitions, pause/change/resume and tray Exit restoration. Individual missing-role, animation and manual-Reload checks were not separately reported. The fix is included in the locally built 1.0.2 installer; installation/label verification remains pending.
 
 At the owner's request, Settings now says 'Resizes cursor themes with .cur/.ani files.' Support & about and README explain that Windows defaults without custom files retain their Windows size despite slider changes. Only file-backed roles are resized; default roles remain controlled by Windows. Website source is outside this repository and was not changed.
 

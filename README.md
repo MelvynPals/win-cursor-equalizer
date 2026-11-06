@@ -4,7 +4,7 @@ A Windows system tray utility for tuning cursor size across monitors with differ
 
 Status: 'Active development' · A personal project by [MelvynPals](https://github.com/MelvynPals).
 
-Current application version: `1.0.1`. [Website](https://cursor-equalizer.emjaypaleguin.com/) · [Downloads](https://github.com/MelvynPals/win-cursor-equalizer/releases) · [Send feedback](https://cursor-equalizer.emjaypaleguin.com/feedback)
+Current application version: `1.0.2`. [Website](https://cursor-equalizer.emjaypaleguin.com/) · [Downloads](https://github.com/MelvynPals/win-cursor-equalizer/releases) · [Send feedback](https://cursor-equalizer.emjaypaleguin.com/feedback)
 
 ![CursorEqualizer calibration window showing two displays at 125% and 150% scaling](references/readme-screenshot.png)
 
@@ -42,7 +42,7 @@ Calibration is hands-on: choose a comfortable size on each display and compare i
 
 ### Install
 
-Download `CursorEqualizer-1.0.1-Setup.exe` from [GitHub Releases](https://github.com/MelvynPals/win-cursor-equalizer/releases) and run it. The Windows x64 installer bundles the .NET runtime and installs for your Windows account.
+Use `CursorEqualizer-1.0.2-Setup.exe` for the current build. Locally built installers are under `artifacts/installer`; published installers are available from [GitHub Releases](https://github.com/MelvynPals/win-cursor-equalizer/releases). The Windows x64 installer bundles the .NET runtime and installs for your Windows account.
 
 For an update, exit the existing app through its tray menu before running setup. The 1.0.1 installation and retention of existing calibration have been verified by the maintainer.
 

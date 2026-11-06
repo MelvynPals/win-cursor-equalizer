@@ -1,6 +1,13 @@
 ﻿# CursorEqualizer TODO
 
-Current work: automatic cursor-scheme refresh is owner-verified on physical monitors (2026-11-06). The custom-file resizing limitation is now stated in Settings, Support & about and README. Earlier 1.0.1, installer integration and recipient/payment checks remain below; no release tag is recorded.
+Current work: version 1.0.2 installer and version label are owner-confirmed (2026-11-06), including the verified automatic cursor-scheme refresh and custom-file limitation. Save the milestone locally with annotated tag v1.0.2; never push. Earlier installer integration and recipient/payment checks remain below.
+
+## Version 1.0.2 installer (authorized 2026-11-06)
+- [x] Bump project Version to 1.0.2; Support & about reads the new label from compiled metadata. Update current README version and changelog.
+- [x] Build Release with zero warnings/errors; all 61 focused checks pass. Publish self-contained payload and compile artifacts/installer/CursorEqualizer-1.0.2-Setup.exe (49,430,141 bytes). Release/payload report ProductVersion 1.0.2 and FileVersion 1.0.2.0; setup reports ProductVersion 1.0.2. NuGet NU1900 audit-connectivity warning persists on publish.
+  - Inno Setup resource updates failed in project output directories, including an approved retry. Compilation with the unchanged installer definition into a fresh Windows TEMP directory succeeded; copied the completed installer to artifacts/installer. No antivirus changes were made.
+- [x] Run the self-contained 1.0.2 payload with --ui-smoke-test: exit 0 and registry restoration logged. UI Automation could not locate a window during the smoke, so visible version-label verification is not claimed; the existing label reads the verified ProductVersion metadata.
+- [x] Owner confirms the new installer/update and Version 1.0.2 label are correct (2026-11-06), following the requested verification. Save the milestone locally and create annotated tag v1.0.2; never push.
 
 ## Automatic cursor-scheme refresh (authorized 2026-11-06)
 - [x] Read active cursor-role paths every 250 ms and before monitor replacement; block cached replacements while changed paths settle for 250 ms. Keep registry access read-only and all engine work inside CursorManager.
